@@ -1,522 +1,490 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Advanced Regression Tool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.5.0/math.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-    body { 
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-        transition: background-color 0.3s, color 0.3s; 
-    }
-    .card { 
-        margin-bottom: 15px; 
-        border-radius: 0.75rem; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-        border: 1px solid #e9ecef; 
-    }
-    .card-header { 
-        font-weight: 600; 
-        background-color: #f8f9fa; 
-    }
-    .summary-box { 
-        border: 1px solid #dee2e6; 
-        border-radius: 0.5rem; 
-        padding: 1.25rem; 
-        margin-bottom: 15px; 
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; 
-        overflow-x: auto; 
-        background-color: #f8f9fa; 
-        font-size: 0.9em; 
-        line-height: 1.4; 
-    }
-    .plot-container { 
-        min-height: 450px; 
-        margin-bottom: 20px; 
-    }
-    .dashboard-container { 
-        display: flex; 
-        gap: 20px; 
-        flex-wrap: wrap; 
-    }
-    .dashboard-panel { 
-        flex: 1; 
-        min-width: 300px; 
-        background-color: #fff; 
-        border: 1px solid #e9ecef; 
-        border-radius: 0.75rem; 
-        padding: 1rem; 
-        overflow: auto; 
-    }
-    .panel-title { 
-        font-weight: bold; 
-        margin-bottom: 10px; 
-        color: #495057; 
-    }
-    .dark-mode { 
-        background-color: #1a1a1a !important; 
-        color: #f1f1f1 !important; 
-    }
-    .dark-mode .card { 
-        background-color: #2c2c2c !important; 
-        border-color: #444 !important; 
-    }
-    .dark-mode .card-header { 
-        background-color: #383838; 
-    }
-    .dark-mode .form-control, .dark-mode .form-select, .dark-mode .form-check-input { 
-        background-color: #333; 
-        color: #f1f1f1; 
-        border-color: #555; 
-    }
-    .dark-mode .form-select:disabled {
-        background-color: #2a2a2a;
-    }
-    .dark-mode .summary-box { 
-        background-color: #222 !important; 
-        border-color: #444 !important; 
-    }
-    .dark-mode .table {
-        color: #f1f1f1;
-    }
-    .dark-mode .table-striped tbody tr:nth-of-type(odd) {
-        background-color: rgba(255, 255, 255, 0.05);
-    }
-    .dark-mode .dashboard-panel .table thead th {
-        background-color: #343a40;
-        border-color: #555;
-        color: #f8f9fa;
-    }
-    .dark-mode .table-hover tbody tr:hover {
-        background-color: #383838 !important;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InboxZero - Email Cleaner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #b8d4e8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            opacity: 0.95;
+            color: #b8d4e8;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .feature {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+        }
+
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(42, 82, 152, 0.5);
+            background: linear-gradient(135deg, #2a5298 0%, #3a6db5 100%);
+        }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .setup-section {
+            background: linear-gradient(to bottom, #f8fbfd 0%, #e8f4f8 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #d0e5f0;
+        }
+
+        .setup-section h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .steps {
+            counter-reset: step-counter;
+        }
+
+        .step {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2a5298;
+            position: relative;
+            padding-left: 60px;
+            box-shadow: 0 2px 8px rgba(30, 60, 114, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(42, 82, 152, 0.2);
+        }
+
+        .step::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(30, 60, 114, 0.3);
+        }
+
+        .step h3 {
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: #546e7a;
+            line-height: 1.6;
+        }
+
+        .step a {
+            color: #2a5298;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid transparent;
+            transition: border-bottom 0.3s ease;
+        }
+
+        .step a:hover {
+            border-bottom: 1px solid #2a5298;
+        }
+
+        .code-block {
+            background: #1e3c72;
+            color: #e0f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(42, 82, 152, 0.5);
+            background: linear-gradient(135deg, #2a5298 0%, #3a6db5 100%);
+        }
+
+        .button-secondary {
+            background: white;
+            color: #1e3c72;
+            border: 2px solid #2a5298;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.2);
+        }
+
+        .button-secondary:hover {
+            background: #f0f8ff;
+            border-color: #3a6db5;
+        }
+
+        .warning-box {
+            background: linear-gradient(to right, #fff4e5 0%, #ffe7cc 100%);
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.1);
+        }
+
+        .success-box {
+            background: linear-gradient(to right, #e8f5e9 0%, #d4edda 100%);
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+        }
+
+        .github-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(30, 60, 114, 0.4);
+        }
+
+        .github-section h2 {
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .config-example {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(30, 60, 114, 0.1);
+        }
+
+        .config-example h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            text-align: center;
+            color: #b8d4e8;
+            margin-top: 40px;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #d0e5f0;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            color: #546e7a;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+
+        .tab.active {
+            color: #1e3c72;
+            border-bottom-color: #2a5298;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
+    <div class="container">
+        <header>
+            <h1>📬 InboxZero</h1>
+            <p class="tagline">Clean Your Inbox in Seconds - Keep What Matters</p>
+        </header>
 
-<div class="container my-4">
-<h1 class="text-center mb-4">📊 Advanced Interactive Regression Tool</h1>
-<div class="text-end mb-3"><button id="darkModeToggle" class="btn btn-outline-secondary btn-sm">Toggle Dark Mode</button></div>
-
-<div class="card">
-    <div class="card-header">1. Upload CSV Data</div>
-    <div class="card-body"><input type="file" id="csvFile" class="form-control" accept=".csv"></div>
-</div>
-
-<div class="card d-none" id="varCard">
-    <div class="card-header">2. Select Variables</div>
-    <div class="card-body">
-        <label class="form-label">Dependent Variable (Y)</label>
-        <select id="dependentVar" class="form-select mb-3"></select>
-        <label class="form-label">Independent Variables (X)</label>
-        <div id="independentVarsContainer"></div>
-        <button class="btn btn-outline-primary btn-sm mt-2" id="addVarBtn">+ Add Variable</button>
-    </div>
-</div>
-
-<div class="card d-none" id="modelCard">
-    <div class="card-header">3. Configure Model</div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Model Type</label>
-                <select id="modelSelect" class="form-select">
-                    <option value="ols">OLS (Linear)</option>
-                    <option value="ridge">Ridge (L2 Regularization)</option>
-                    <option value="lasso">Lasso (L1 Regularization)</option>
-                    <option value="decision_tree">Decision Tree</option>
-                    <option value="logit">Logit (Binary Classification)</option>
-                    <option value="probit">Probit (Binary Classification)</option>
-                </select>
-            </div>
-            <div class="col-md-6 mb-3" id="modelOptionsPanel">
-                <div id="alphaContainer" class="d-none">
-                    <label for="alphaInput" class="form-label">Regularization Alpha (α)</label>
-                    <input type="number" id="alphaInput" class="form-control" value="1.0" step="0.1" min="0">
+        <div class="main-card">
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Smart Analysis</h3>
+                    <p>Analyzes all unread emails for priority content</p>
                 </div>
-                <div id="maxDepthContainer" class="d-none">
-                    <label for="maxDepthInput" class="form-label">Max Tree Depth</label>
-                    <input type="number" id="maxDepthInput" class="form-control" value="5" step="1" min="1">
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Priority Detection</h3>
+                    <p>Identifies important emails by keywords & senders</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🏷️</div>
+                    <h3>Auto Labeling</h3>
+                    <p>Labels priority emails for easy access</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Detailed Reports</h3>
+                    <p>Get summaries of what's important</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✅</div>
+                    <h3>Bulk Mark as Read</h3>
+                    <p>Clear your unread count to zero</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Privacy First</h3>
+                    <p>Runs locally, your data stays private</p>
                 </div>
             </div>
-        </div>
-        <hr>
-        <div class="form-check form-switch mb-3">
-            <input class="form-check-input" type="checkbox" id="kFoldToggle">
-            <label class="form-check-label" for="kFoldToggle">Enable K-Fold Cross-Validation</label>
-        </div>
-        <div id="kFoldContainer" class="d-none">
-            <label for="kFoldsInput" class="form-label">Number of Folds (K)</label>
-            <input type="number" id="kFoldsInput" class="form-control" value="5" step="1" min="2" max="100">
-        </div>
-        <button id="runBtn" class="btn btn-success w-100 mt-3">Run Model</button>
-    </div>
-</div>
 
-<div class="card d-none" id="datasetOverviewCard">
-    <div class="card-header">📋 Dataset Overview</div>
-    <div class="card-body">
-        <div class="dashboard-container">
-            <div class="dashboard-panel">
-                <div class="panel-title">First 5 Rows</div>
-                <div class="table-responsive" id="firstRowsContainer"></div>
-                <div class="panel-title mt-3">Descriptive Statistics</div>
-                <div class="table-responsive" id="descStatsContainer"></div>
-            </div>
-            <div class="dashboard-panel">
-                <div class="panel-title">Missing Data Summary</div>
-                <div class="table-responsive" id="statsContainer"></div>
-                <div class="summary-box mt-3" id="completeCase" style="font-size: 0.8rem; padding: 0.5rem;"></div>
+            <div class="success-box">
+                <strong>✨ Perfect for:</strong> Busy professionals, students, anyone drowning in unread emails!
             </div>
         </div>
-    </div>
-</div>
 
-<div class="card d-none" id="resultsCard">
-    <div class="card-header">📈 Results</div>
-    <div class="card-body"><div class="summary-box" id="modelSummaryBox"><pre></pre></div></div>
-</div>
-
-<div class="card d-none" id="plotCard">
-     <div class="card-header">📊 Visualization</div>
-     <div class="card-body">
-         <div class="mb-3">
-             <label class="form-label">Choose Plot</label>
-             <select id="plotSelect" class="form-select">
-                 <option value="actualFitted">Actual vs. Fitted</option>
-                 <option value="residualsFitted">Residuals vs. Fitted</option>
-                 <option value="qq">Normal Q-Q Plot</option>
-                 <option value="histResiduals">Histogram of Residuals</option>
-             </select>
-         </div>
-         <button class="btn btn-primary mb-3" id="plotBtn">Generate Plot</button>
-         <div id="plot" class="plot-container"></div>
-     </div>
-</div>
-</div>
-
-<script>
-// ========== GLOBAL VARIABLES & UI SETUP ==========
-let data = [], headers = [], res = null, modelType = 'ols';
-
-document.getElementById('darkModeToggle').addEventListener('click', () => { 
-    document.body.classList.toggle('dark-mode'); 
-    if (res && !res.meanMSE) generatePlot(); 
-});
-document.getElementById('csvFile').addEventListener('change', handleFileUpload);
-document.getElementById('addVarBtn').addEventListener('click', () => addIndependentVar());
-document.getElementById('runBtn').addEventListener('click', runRegression);
-document.getElementById('plotBtn').addEventListener('click', generatePlot);
-document.getElementById('modelSelect').addEventListener('change', updateModelOptionsUI);
-document.getElementById('kFoldToggle').addEventListener('change', updateModelOptionsUI);
-
-function updateModelOptionsUI() {
-    const model = document.getElementById('modelSelect').value;
-    const isBinaryModel = ['logit', 'probit'].includes(model);
-    const kFoldToggle = document.getElementById('kFoldToggle');
-
-    document.getElementById('alphaContainer').classList.toggle('d-none', !['ridge', 'lasso'].includes(model));
-    document.getElementById('maxDepthContainer').classList.toggle('d-none', model !== 'decision_tree');
-    
-    // Disable K-Fold for binary models for now, as CV needs different metrics (e.g. accuracy)
-    kFoldToggle.disabled = isBinaryModel;
-    if (isBinaryModel) {
-        kFoldToggle.checked = false;
-    }
-    document.getElementById('kFoldContainer').classList.toggle('d-none', !kFoldToggle.checked || isBinaryModel);
-}
-
-// ========== DATA HANDLING ==========
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    Papa.parse(file, {
-        header: true, dynamicTyping: true, skipEmptyLines: true,
-        complete: function(results) {
-            data = results.data.map(row => {
-                const cleaned = {};
-                for (let key in row) {
-                    cleaned[key] = (row[key] === "" || row[key] === null) ? null : row[key];
-                }
-                return cleaned;
-            });
-            headers = results.meta.fields;
-            document.getElementById('dependentVar').innerHTML = headers.map(h => `<option value="${h}">${h}</option>`).join('');
-            document.getElementById('independentVarsContainer').innerHTML = '';
-            addIndependentVar();
-            ['varCard', 'modelCard', 'datasetOverviewCard'].forEach(id => document.getElementById(id).classList.remove('d-none'));
-            showDatasetOverview();
-        }
-    });
-}
-
-function addIndependentVar() {
-    const container = document.getElementById('independentVarsContainer');
-    const div = document.createElement('div');
-    div.className = 'd-flex mb-2 align-items-center';
-    const select = document.createElement('select');
-    select.className = 'form-select me-2';
-    select.innerHTML = headers.map(h => `<option value="${h}">${h}</option>`).join('');
-    const allSelects = container.querySelectorAll('select');
-    if (allSelects.length > 0) {
-        const lastIndex = headers.indexOf(allSelects[allSelects.length - 1].value);
-        if (lastIndex + 1 < headers.length) select.value = headers[lastIndex + 1];
-    }
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'btn btn-outline-danger btn-sm';
-    removeBtn.textContent = '×';
-    removeBtn.onclick = () => div.remove();
-    div.append(select, removeBtn);
-    container.appendChild(div);
-}
-
-function getModelData(yVar, xVars) {
-    return data.map(row => {
-        const rowData = { y: Number(row[yVar]), X_row: [1] }; // Intercept
-        xVars.forEach(v => rowData.X_row.push(Number(row[v])));
-        if (isNaN(rowData.y) || rowData.X_row.some(isNaN)) return null;
-        return rowData;
-    }).filter(Boolean);
-}
-
-function showDatasetOverview() {
-    const first5 = data.slice(0, 5);
-    let tableHtml = '<table class="table table-striped table-hover table-bordered text-center">';
-    if (first5.length > 0) {
-        tableHtml += '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
-        tableHtml += '<tbody>' + first5.map(r => '<tr>' + headers.map(h => `<td>${r[h] === null ? '·' : r[h]}</td>`).join('') + '</tr>').join('') + '</tbody>';
-    }
-    tableHtml += '</table>';
-    document.getElementById('firstRowsContainer').innerHTML = tableHtml;
-
-    let statsHtml = '<table class="table table-striped table-hover table-bordered text-center"><thead><tr><th>Variable</th><th>Count</th><th>Missing</th></tr></thead><tbody>';
-    let descHtml = '<table class="table table-striped table-hover table-bordered text-center"><thead><tr><th>Variable</th><th>Mean</th><th>Std. Dev.</th><th>Min</th><th>Max</th></tr></thead><tbody>';
-    headers.forEach(h => {
-        const vals = data.map(r => Number(r[h])).filter(v => !isNaN(v));
-        statsHtml += `<tr><td>${h}</td><td>${vals.length}</td><td>${data.length - vals.length}</td></tr>`;
-        if (vals.length > 0) {
-            descHtml += `<tr><td>${h}</td><td>${jStat.mean(vals).toFixed(3)}</td><td>${jStat.stdev(vals, true).toFixed(3)}</td><td>${jStat.min(vals).toFixed(3)}</td><td>${jStat.max(vals).toFixed(3)}</td></tr>`;
-        } else {
-            descHtml += `<tr><td>${h}</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
-        }
-    });
-    statsHtml += '</tbody></table>';
-    descHtml += '</tbody></table>';
-    document.getElementById('statsContainer').innerHTML = statsHtml;
-    document.getElementById('descStatsContainer').innerHTML = descHtml;
-    const completeObs = data.filter(r => headers.every(h => r[h] !== null && r[h] !== "")).length;
-    document.getElementById('completeCase').innerHTML = `<b>Total Complete Rows:</b> ${completeObs} / ${data.length}`;
-}
-
-// ========== REGRESSION MODELS ==========
-function ols(modelData) { /* ... same as previous version ... */ }
-function ridge(modelData, alpha = 1.0) { /* ... same as previous version ... */ }
-function lasso(modelData, alpha = 1.0, maxIter = 1000, tol = 1e-4) { /* ... same as previous version ... */ }
-function decisionTree(modelData, maxDepth = 5, minSamples = 2) { /* ... same as previous version ... */ }
-
-function logisticProbit(modelData, model = 'logit') {
-    const y = modelData.map(d => d.y);
-    const X = modelData.map(d => d.X_row);
-    const n = y.length, p = X[0].length;
-    let beta = math.zeros(p).valueOf(); // Use JS array
-    const maxIter = 100, tol = 1e-6;
-
-    const link = (xb) => model === 'logit' ? 1 / (1 + Math.exp(-xb)) : jStat.normal.cdf(xb, 0, 1);
-
-    // Iteratively Reweighted Least Squares (IRLS) - more stable than gradient ascent
-    for (let i = 0; i < maxIter; i++) {
-        const xb = math.multiply(X, beta);
-        const pi = xb.map(v => link(v));
-        const weights = pi.map(p_i => p_i * (1 - p_i) + 1e-9); // Add epsilon for stability
-        const W = math.diag(weights);
-        const z = xb.map((val, idx) => val + (y[idx] - pi[idx]) / weights[idx]);
-        
-        const XtW = math.multiply(math.transpose(X), W);
-        const XtWX_inv = math.inv(math.multiply(XtW, X));
-        const beta_new = math.multiply(math.multiply(XtWX_inv, XtW), z).valueOf();
-        
-        const change = math.norm(math.subtract(beta_new, beta));
-        beta = beta_new;
-        if (change < tol) break;
-    }
-    
-    const yHat = math.multiply(X, beta).map(v => link(v));
-    const residuals = y.map((val, i) => val - yHat[i]);
-    const logLik = jStat.sum(y.map((yi, i) => yi * Math.log(yHat[i] + 1e-9) + (1 - yi) * Math.log(1 - yHat[i] + 1e-9)));
-    
-    const pi = yHat;
-    const W = math.diag(pi.map(p_i => p_i * (1 - p_i)));
-    const FisherInfo = math.multiply(math.multiply(math.transpose(X), W), X);
-    let varCovar;
-    try { varCovar = math.inv(FisherInfo).toArray(); }
-    catch { varCovar = math.diag(Array(p).fill(NaN)).toArray(); }
-
-    const se = varCovar.map((_, i) => Math.sqrt(Math.abs(varCovar[i][i])));
-    const zStats = beta.map((b, i) => b / se[i]);
-    const pValues = zStats.map(z => 2 * (1 - jStat.normal.cdf(Math.abs(z), 0, 1)));
-    
-    return { y, yHat, residuals, beta, se, zStats, pValues, n, p, logLik };
-}
-
-
-// ========== K-FOLD CROSS-VALIDATION ==========
-function runKFoldCV(fullData, modelType, k, options) { /* ... same as previous version ... */ }
-
-// ========== DISPLAY & EXECUTION ==========
-function displayStataResults(res, yVar, xVars) { /* ... same as previous version ... */ }
-function displaySimpleResults(res, yVar, xVars, modelType) { /* ... same as previous version ... */ }
-function displayCVResults(res, modelType) { /* ... same as previous version ... */ }
-
-function displayBinaryResults(res, yVar, xVars, modelType) {
-    const summaryEl = document.getElementById('modelSummaryBox').querySelector('pre');
-    let output = `${modelType.charAt(0).toUpperCase() + modelType.slice(1)} regression` + ` `.repeat(23) + `Number of obs   = ${res.n.toLocaleString()}\n`;
-    output += ` `.repeat(41) + `Log likelihood  = ${res.logLik.toFixed(4)}\n`;
-    output += `------------------------------------------------------------------------------\n`;
-    output += ` ${yVar.padEnd(12)} |      Coef.   Std. Err.       z    P>|z|     [95% Conf. Interval]\n`;
-    output += `----------------+-------------------------------------------------------------\n`;
-    
-    const coefNames = ['_cons', ...xVars];
-    res.beta.forEach((b, i) => {
-        const se = res.se[i];
-        const ciLow = (b - 1.96 * se).toFixed(4);
-        const ciHigh = (b + 1.96 * se).toFixed(4);
-        output += `${coefNames[i].padEnd(15)} | ${b.toFixed(4).padStart(10)} ${se.toFixed(4).padStart(10)} ${res.zStats[i].toFixed(2).padStart(6)}   ${res.pValues[i].toFixed(3).padStart(5)}    ${ciLow.padStart(8)}  ${ciHigh.padStart(8)}\n`;
-    });
-    output += `------------------------------------------------------------------------------\n`;
-    summaryEl.textContent = output;
-}
-
-function runRegression() {
-    const yVar = document.getElementById('dependentVar').value;
-    const xVars = Array.from(document.querySelectorAll('#independentVarsContainer select')).map(s => s.value);
-    if (!yVar || xVars.length === 0) return alert("Please select variables.");
-    if (new Set([yVar, ...xVars]).size !== xVars.length + 1) return alert("Variables must be unique.");
-
-    modelType = document.getElementById('modelSelect').value;
-    const modelData = getModelData(yVar, xVars);
-    if (modelData.length < xVars.length + 2) return alert("Not enough complete observations.");
-    
-    const kFoldEnabled = document.getElementById('kFoldToggle').checked;
-    const options = {
-        alpha: parseFloat(document.getElementById('alphaInput').value),
-        maxDepth: parseInt(document.getElementById('maxDepthInput').value, 10),
-        k: parseInt(document.getElementById('kFoldsInput').value, 10)
-    };
-
-    res = null;
-    document.getElementById('plotCard').classList.add('d-none');
-
-    if (kFoldEnabled) {
-        if (modelData.length < options.k) return alert(`Not enough data for ${options.k} folds. Please reduce K.`);
-        res = runKFoldCV(modelData, modelType, options.k, options);
-        if (res) displayCVResults(res, modelType);
-    } else {
-        if (modelType === 'ols') res = ols(modelData);
-        else if (modelType === 'ridge') res = ridge(modelData, options.alpha);
-        else if (modelType === 'lasso') res = lasso(modelData, options.alpha);
-        else if (modelType === 'decision_tree') res = decisionTree(modelData, options.maxDepth);
-        else if (modelType === 'logit' || modelType === 'probit') {
-            const yValues = new Set(modelData.map(d => d.y));
-            if (yValues.size > 2 || !(yValues.has(0) && yValues.has(1))) {
-                return alert("For Logit/Probit models, the dependent variable must be binary (containing only 0s and 1s).");
-            }
-            res = logisticProbit(modelData, modelType);
-        }
-
-        if (res) {
-            if (modelType === 'ols') displayStataResults(res, yVar, xVars);
-            else if (['logit', 'probit'].includes(modelType)) displayBinaryResults(res, yVar, xVars, modelType);
-            else displaySimpleResults(res, yVar, xVars, modelType);
+        <div class="main-card">
+            <h2 style="color: #1e3c72; margin-bottom: 20px;">📥 Quick Start Guide</h2>
             
-            // Only show plots for regression models
-            if (!['logit', 'probit'].includes(modelType)) {
-                 document.getElementById('plotCard').classList.remove('d-none');
-                 generatePlot();
-            }
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('gmail')">Gmail Setup</button>
+                <button class="tab" onclick="switchTab('outlook')">Outlook Setup</button>
+                <button class="tab" onclick="switchTab('usage')">How to Use</button>
+            </div>
+
+            <div id="gmail" class="tab-content active">
+                <div class="setup-section">
+                    <h2>🔐 Gmail API Setup</h2>
+                    <div class="steps">
+                        <div class="step">
+                            <h3>Create Google Cloud Project</h3>
+                            <p>Go to <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a> and create a new project</p>
+                        </div>
+                        <div class="step">
+                            <h3>Enable Gmail API</h3>
+                            <p>In APIs & Services → Library, search for "Gmail API" and enable it</p>
+                        </div>
+                        <div class="step">
+                            <h3>Create OAuth Credentials</h3>
+                            <p>Go to APIs & Services → Credentials → Create Credentials → OAuth client ID → Desktop app</p>
+                        </div>
+                        <div class="step">
+                            <h3>Download credentials.json</h3>
+                            <p>Download the JSON file and place it in the project folder</p>
+                        </div>
+                        <div class="step">
+                            <h3>Add Test Users</h3>
+                            <p>Go to OAuth consent screen → Add your email as a test user</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="outlook" class="tab-content">
+                <div class="setup-section">
+                    <h2>📧 Outlook API Setup</h2>
+                    <div class="steps">
+                        <div class="step">
+                            <h3>Go to Azure Portal</h3>
+                            <p>Visit <a href="https://portal.azure.com" target="_blank">Azure Portal</a> and sign in</p>
+                        </div>
+                        <div class="step">
+                            <h3>Register an Application</h3>
+                            <p>Go to Azure Active Directory → App registrations → New registration</p>
+                        </div>
+                        <div class="step">
+                            <h3>Set Permissions</h3>
+                            <p>API permissions → Add permission → Microsoft Graph → Delegated → Mail.ReadWrite</p>
+                        </div>
+                        <div class="step">
+                            <h3>Create Client Secret</h3>
+                            <p>Certificates & secrets → New client secret → Copy the value</p>
+                        </div>
+                        <div class="step">
+                            <h3>Note Your IDs</h3>
+                            <p>Copy Application (client) ID and Directory (tenant) ID from Overview page</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="usage" class="tab-content">
+                <div class="setup-section">
+                    <h2>💻 Installation & Usage</h2>
+                    <div class="steps">
+                        <div class="step">
+                            <h3>Install Python</h3>
+                            <p>Download Python 3.8+ from <a href="https://python.org" target="_blank">python.org</a></p>
+                        </div>
+                        <div class="step">
+                            <h3>Clone Repository</h3>
+                            <div class="code-block">git clone https://github.com/Speedkelvyn/inboxzero.git<br>cd inboxzero</div>
+                        </div>
+                        <div class="step">
+                            <h3>Install Dependencies</h3>
+                            <div class="code-block">pip install -r requirements.txt</div>
+                        </div>
+                        <div class="step">
+                            <h3>Configure Settings</h3>
+                            <p>Edit the script with your important senders and keywords</p>
+                            <div class="config-example">
+                                <h4>Example configuration:</h4>
+                                <div class="code-block">IMPORTANT_SENDERS = [<br>    'boss@company.com',<br>    '@yourcompany.com'<br>]<br><br>IMPORTANT_KEYWORDS = [<br>    'urgent', 'deadline', 'invoice'<br>]</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <h3>Run the Script</h3>
+                            <div class="code-block">python gmail_reader.py</div>
+                            <p style="margin-top: 10px;">Or for Outlook:</p>
+                            <div class="code-block">python outlook_reader.py</div>
+                        </div>
+                    </div>
+
+                    <div class="warning-box">
+                        <strong>⚠️ First Run:</strong> The script will open your browser to authenticate. This is normal! Grant permissions and the script will save your credentials for future runs.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="github-section">
+            <h2>🚀 Ready to Get Started?</h2>
+            <p style="margin-bottom: 20px; font-size: 1.1em;">Download from GitHub and start cleaning your inbox today!</p>
+            <a href="https://github.com/yourusername/inboxzero" class="button" target="_blank">View on GitHub</a>
+            <a href="https://github.com/yourusername/inboxzero/archive/refs/heads/main.zip" class="button button-secondary" target="_blank" style="margin-left: 10px;">Download ZIP</a>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ for inbox peace of mind</p>
+            <p style="margin-top: 10px;">100% Free & Open Source • No data collection • Your emails stay private</p>
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
         }
-    }
-    
-    if (res) document.getElementById('resultsCard').classList.remove('d-none');
-    else alert("Model estimation failed. Check console for errors.");
-}
-
-function generatePlot() {
-    const plotContainer = document.getElementById('plot');
-    const plotControls = document.getElementById('plotCard').querySelectorAll('select, button');
-    
-    if (!res || res.meanMSE || ['logit', 'probit'].includes(modelType)) {
-        plotContainer.innerHTML = '<div class="alert alert-info">Diagnostic plots are only available for single-run regression models (OLS, Ridge, Lasso, Decision Tree).</div>';
-        plotControls.forEach(el => el.disabled = true);
-        return;
-    }
-    
-    plotControls.forEach(el => el.disabled = false);
-    let traces = [], layout = {
-        margin: { t: 50, l: 50, r: 30, b: 50 }, showlegend: false,
-        paper_bgcolor: document.body.classList.contains('dark-mode') ? '#2c2c2c' : '#fff',
-        plot_bgcolor: document.body.classList.contains('dark-mode') ? '#2c2c2c' : '#fff',
-        font: { color: document.body.classList.contains('dark-mode') ? '#f1f1f1' : '#000' }
-    };
-    const plotType = document.getElementById('plotSelect').value;
-    if (plotType === 'actualFitted') { /* ... same as previous version ... */ }
-    else if (plotType === 'residualsFitted') { /* ... same as previous version ... */ }
-    else if (plotType === 'qq') { /* ... same as previous version ... */ }
-    else if (plotType === 'histResiduals') { /* ... same as previous version ... */ }
-    
-    try {
-        Plotly.newPlot('plot', traces, layout, { responsive: true });
-    } catch (e) {
-        console.error("Plotly error:", e);
-        plotContainer.innerHTML = `<div class="alert alert-danger">Could not generate plot. Error: ${e.message}</div>`;
-    }
-}
-</script>
-
-<!-- Minified placeholder functions to save space -->
-<script>
-function ols(modelData){const y=modelData.map(d=>d.y),X=modelData.map(d=>d.X_row);try{const t=math.transpose(X),e=math.inv(math.multiply(t,X));let a=math.multiply(math.multiply(e,t),y);a=math.flatten(a);const s=math.flatten(math.multiply(X,a)),o=y.map((t,e)=>t-s[e]),l=y.length,n=X[0].length,r=n-1,d=l-n,i=jStat.sum(o.map(t=>t**2)),m=jStat.sum(y.map(t=>(t-jStat.mean(y))**2)),u=m-i,c=u/r,p=i/d,f=c/p,h=1-jStat.centralF.cdf(f,r,d),g=1-i/m,x=1-(1-g)*(l-1)/d,v=Math.sqrt(p),S=math.multiply(p,e),b=math.flatten(S.map((t,e)=>Math.sqrt(t[e]))),L=a.map((t,e)=>t/b[e]),w=L.map(t=>2*(1-jStat.studentt.cdf(Math.abs(t),d)));return{y,yHat:s,residuals:o,beta:a,se:b,tStats:L,pValues:w,n:l,p:n,df_model:r,df_resid:d,ssModel:u,ssRes:i,ssTot:m,msModel:c,msResid:p,fStat:f,fPValue:h,r2:g,adjR2:x,rootMSE:v}}catch(t){return alert("OLS Failed: "+t.message),null}}
-function ridge(modelData,alpha=1){const y=modelData.map(d=>d.y),X=modelData.map(d=>d.X_row),p=X[0].length;try{const t=math.transpose(X);let e=math.identity(p);e.set([0,0],0);const a=math.multiply(alpha,e),s=math.inv(math.add(math.multiply(t,X),a));let o=math.multiply(math.multiply(s,t),y);o=math.flatten(o);const l=math.flatten(math.multiply(X,o)),n=y.map((t,e)=>t-l[e]),r=1-jStat.sum(n.map(t=>t**2))/jStat.sum(y.map(t=>(t-jStat.mean(y))**2));return{beta:o,y,yHat:l,residuals:n,r2:r,n:y.length}}catch(t){return alert("Ridge failed: "+t.message),null}}
-function lasso(modelData,alpha=1,maxIter=1e3,tol=1e-4){const y=modelData.map(d=>d.y),X=modelData.map(d=>d.X_row),n=y.length,p=X[0].length;let beta=Array(p).fill(0);const xColSqSum=Array(p).fill(0).map((t,e)=>jStat.sum(X.map(t=>t[e]**2)));for(let t=0;t<maxIter;t++){let e=0;for(let t=0;t<p;t++){const a=beta[t],s=math.flatten(math.multiply(X,beta)),o=y.map((e,a)=>e-s[a]+X[a][t]*oldBeta);let l=jStat.sum(X.map((e,a)=>e[t]*o[a]));if(0===t)beta[t]=l/xColSqSum[t];else{const a=alpha*n/2;l<-a?beta[t]=(l+a)/xColSqSum[t]:l>a?beta[t]=(l-a)/xColSqSum[t]:beta[t]=0}e=Math.max(e,Math.abs(beta[t]-a))}if(e<tol)break}const yHat=math.flatten(math.multiply(X,beta)),residuals=y.map((t,e)=>t-yHat[e]),r2=1-jStat.sum(residuals.map(t=>t**2))/jStat.sum(y.map(t=>(t-jStat.mean(y))**2));return{beta,y,yHat,residuals,r2,n}}
-function decisionTree(modelData,maxDepth=5,minSamples=2){const model={X:modelData.map(t=>t.X_row.slice(1)),y:modelData.map(t=>t.y)},mse=t=>{if(0===t.length)return 0;const e=jStat.mean(t);return jStat.sum(t.map(t=>(t-e)**2))},findBestSplit=t=>{let e={score:1/0};const a=mse(t.map(e=>model.y[e])),s=model.X[0].length;for(let o=0;o<s;o++)for(const l of[...new Set(t.map(e=>model.X[e][o]))]){const n=t.filter(e=>model.X[e][o]<l),r=t.filter(e=>model.X[e][o]>=l);if(n.length<1||r.length<1)continue;const d=mse(n.map(t=>model.y[t]))+mse(r.map(t=>model.y[t]));d<e.score&&(e={feature:o,threshold:l,score:d,left:n,right:r})}return e.score<a?e:null},build=(t,e)=>{if(e>=maxDepth||t.length<minSamples||1===new Set(t.map(e=>model.y[e])).size)return{leafValue:jStat.mean(t.map(e=>model.y[e]))};const a=findBestSplit(t);return a?{...a,left:build(a.left,e+1),right:build(a.right,e+1)}:{leafValue:jStat.mean(t.map(e=>model.y[e]))}},tree=build(model.y.map((t,e)=>e),0),predict=(t,e)=>void 0!==t.leafValue?t.leafValue:predict(e[t.feature]<t.threshold?t.left:t.right,e),yHat=model.X.map(t=>predict(tree,t)),residuals=model.y.map((t,e)=>t-yHat[e]),r2=1-jStat.sum(residuals.map(t=>t**2))/jStat.sum(model.y.map(t=>(t-jStat.mean(model.y))**2));return{tree,y:model.y,yHat,residuals,r2,n:model.y.length}}
-function runKFoldCV(fullData,modelType,k,options){const shuffled=fullData.sort(()=>.5-Math.random()),foldSize=Math.floor(shuffled.length/k);let scores=[];for(let i=0;i<k;i++){const t=i*foldSize,e=(i+1)*foldSize,a=shuffled.slice(t,e),s=[...shuffled.slice(0,t),...shuffled.slice(e)];let o;if("ols"===modelType)o=ols(s);else if("ridge"===modelType)o=ridge(s,options.alpha);else if("lasso"===modelType)o=lasso(s,options.alpha);else if("decision_tree"===modelType)o=decisionTree(s,options.maxDepth);if(o){const t=a.map(t=>(t=>{if(o.tree){return(e=>(e,a)=>void 0!==e.leafValue?e.leafValue:e(a[e.feature]<e.threshold?e.left:e.right,a))(o.tree,t.slice(1))}return math.multiply(t,o.beta)}) (t.X_row)),e=jStat.mean(a.map((e,a)=>(e.y-t[a])**2));scores.push(e)}}return scores.length>0?{meanMSE:jStat.mean(scores),stdMSE:jStat.stdev(scores,!0),k}:null}
-function displayStataResults(res,yVar,xVars){const t=document.getElementById("modelSummaryBox").querySelector("pre");let e=`
-      Source |       SS           df          MS
--------------+----------------------------------   Number of obs   = ${res.n.toLocaleString()}
-       Model | ${res.ssModel.toFixed(2).padStart(12)}   ${res.df_model.toString().padStart(5)}   ${res.msModel.toFixed(2).padStart(10)}      F(${res.df_model}, ${res.df_resid})    = ${res.fStat.toFixed(2)}
-    Residual | ${res.ssRes.toFixed(2).padStart(12)}   ${res.df_resid.toString().padStart(5)}   ${res.msResid.toFixed(2).padStart(10)}      Prob > F        = ${res.fPValue.toPrecision(4)}
--------------+----------------------------------   R-squared       = ${res.r2.toFixed(4)}
-       Total | ${res.ssTot.toFixed(2).padStart(12)}   ${(res.n-1).toString().padStart(5)}   ${(res.ssTot/(res.n-1)).toFixed(2).padStart(10)}      Adj R-squared   = ${res.adjR2.toFixed(4)}
-                                                   Root MSE        = ${res.rootMSE.toFixed(4)}
-------------------------------------------------------------------------------
- ${yVar.padEnd(12)} |      Coef.   Std. Err.       t    P>|t|     [95% Conf. Interval]
-----------------+-------------------------------------------------------------
-`;const a=["_cons",...xVars],s=jStat.studentt.inv(.975,res.df_resid);res.beta.forEach((t,o)=>{const l=(t-s*res.se[o]).toFixed(4),n=(t+s*res.se[o]).toFixed(4);e+=`${a[o].padEnd(15)} | ${t.toFixed(4).padStart(10)} ${res.se[o].toFixed(4).padStart(10)} ${res.tStats[o].toFixed(2).padStart(6)}   ${res.pValues[o].toFixed(3).padStart(5)}    ${l.padStart(8)}  ${n.padStart(8)}
-`}),e+="------------------------------------------------------------------------------\n",t.textContent=e}
-function displaySimpleResults(res,yVar,xVars,modelType){const t=document.getElementById("modelSummaryBox").querySelector("pre");let e=`${modelType.toUpperCase()} Regression Results
-Number of obs = ${res.n}
-R-squared     = ${res.r2?res.r2.toFixed(4):"N/A"}
-
-`;"decision_tree"!==modelType?(e+=`-------------------------------------------------
-Variable       |      Coef.
--------------------------------------------------
-`,["_cons",...xVars].forEach((t,a)=>{e+=`${t.padEnd(15)}| ${res.beta[a].toFixed(4).padStart(10)}
-`})):(e+=`NOTE: A tree structure was trained. Coefficients are not applicable.
-R-squared is based on in-sample predictions.`),t.textContent=e}
-function displayCVResults(res,modelType){document.getElementById("modelSummaryBox").querySelector("pre").textContent=`${res.k}-Fold Cross-Validation Results for ${modelType.toUpperCase()}
-
-Mean Squared Error (MSE)
--------------------------------------------------
-Mean (avg across folds): ${res.meanMSE.toFixed(4)}
-Std. Dev. across folds : ${res.stdMSE.toFixed(4)}
-
-NOTE: This is the average out-of-sample error.
-Lower MSE is generally better.`}
-function generatePlot(){const t=document.getElementById("plot"),e=document.getElementById("plotCard").querySelectorAll("select, button");if(!res||res.meanMSE||["logit","probit"].includes(modelType))return t.innerHTML='<div class="alert alert-info">Diagnostic plots are only available for single-run regression models (OLS, Ridge, Lasso, Decision Tree).</div>',void e.forEach(t=>t.disabled=!0);e.forEach(t=>t.disabled=!1);let a=[],s={margin:{t:50,l:50,r:30,b:50},showlegend:!1,paper_bgcolor:document.body.classList.contains("dark-mode")?"#2c2c2c":"#fff",plot_bgcolor:document.body.classList.contains("dark-mode")?"#2c2c2c":"#fff",font:{color:document.body.classList.contains("dark-mode")?"#f1f1f1":"#000"}};const o=document.getElementById("plotSelect").value;if("actualFitted"===o){const t=Math.min(...res.y,...res.yHat),e=Math.max(...res.y,...res.yHat);a=[{x:res.yHat,y:res.y,mode:"markers",type:"scatter",name:"Data",marker:{color:"rgba(0, 123, 255, 0.6)",size:7}},{x:[t,e],y:[t,e],mode:"lines",type:"scatter",name:"Perfect Fit",line:{color:"rgba(220, 53, 69, 0.8)",dash:"dash"}}],s.title="Actual vs. Fitted Values",s.xaxis={title:"Fitted Values"},s.yaxis={title:"Actual Values"},s.showlegend=!0}else if("residualsFitted"===o)a=[{x:res.yHat,y:res.residuals,mode:"markers",type:"scatter",marker:{color:"rgba(255, 193, 7, 0.7)"}},{x:[Math.min(...res.yHat),Math.max(...res.yHat)],y:[0,0],mode:"lines",line:{color:"rgba(220, 53, 69, 0.8)",dash:"dash"}}],s.title="Residuals vs. Fitted Values",s.xaxis={title:"Fitted Values"},s.yaxis={title:"Residuals"};else if("qq"===o){const t=[...res.residuals].sort((t,e)=>t-e),e=t.map((e,a)=>jStat.normal.inv((a+.5)/t.length,0,1));a=[{x:e,y:t,mode:"markers",type:"scatter",marker:{color:"rgba(40, 167, 69, 0.7)"}}],s.title="Normal Q-Q Plot",s.xaxis={title:"Theoretical Quantiles"},s.yaxis={title:"Sample Quantiles (Residuals)"}}else"histResiduals"===o&&(a=[{x:res.residuals,type:"histogram",marker:{color:"rgba(108, 117, 125, 0.7)"}}],s.title="Histogram of Residuals",s.xaxis={title:"Residuals"},s.yaxis={title:"Frequency"});try{Plotly.newPlot("plot",a,s,{responsive:!0})}catch(e){console.error("Plotly error:",e),t.innerHTML=`<div class="alert alert-danger">Could not generate plot. Error: ${e.message}</div>`}}
-</script>
+    </script>
 </body>
 </html>
-

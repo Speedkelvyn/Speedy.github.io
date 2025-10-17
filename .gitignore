@@ -1,0 +1,14 @@
+# NEVER upload these - they contain your credentials!
+credentials.json
+token.json
+client_secret*.json
+config.py
+
+# Email reports (contain private data)
+*_report_*.txt
+reports/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
