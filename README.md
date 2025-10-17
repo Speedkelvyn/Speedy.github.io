@@ -1,2 +1,2 @@
 # Speedy.github.io
-A site to hold contact details 
+Working my way around github
