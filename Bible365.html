@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1208">
+  <title>Daily Word · 365</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --parchment:    #faf7f0;
+      --cream:        #f4efe4;
+      --card:         #fffdf8;
+      --ink:          #1a1208;
+      --ink-muted:    #7a6e5f;
+      --ink-light:    #b5a99a;
+      --gold:         #b8860b;
+      --gold-bright:  #d4a017;
+      --gold-pale:    #f5e9c8;
+      --sage:         #2d6a4f;
+      --sage-pale:    #d8f0e6;
+      --border:       #e6dece;
+      --shadow-warm:  rgba(120, 90, 40, 0.10);
+
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'Lora', Georgia, serif;
+      --font-ui:      'DM Sans', system-ui, sans-serif;
+    }
+
+    html { height: 100%; }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--parchment);
+      color: var(--ink);
+      min-height: 100%;
+      min-height: 100dvh;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 150px 150px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── DECORATIVE HEADER BAND ── */
+    .top-band {
+      background: var(--ink);
+      padding: calc(env(safe-area-inset-top) + 18px) 24px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .top-band::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent, transparent 30px,
+        rgba(255,255,255,0.03) 30px, rgba(255,255,255,0.03) 31px
+      );
+    }
+    .top-band-inner {
+      max-width: 520px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative; z-index: 1;
+    }
+    .app-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .app-title span {
+      color: var(--gold-bright);
+      font-style: italic;
+    }
+    .app-subtitle {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-top: 5px;
+    }
+    .btn-today {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      background: var(--gold-bright);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-today:active { transform: scale(0.95); }
+
+    /* ── PROGRESS STRIP ── */
+    .progress-strip {
+      background: var(--ink);
+      padding: 0 24px 16px;
+    }
+    .progress-strip-inner {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 8px;
+    }
+    .progress-meta .done-count { color: var(--gold-bright); }
+    .progress-track {
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 20px 16px calc(env(safe-area-inset-bottom) + 32px);
+      position: relative; z-index: 1;
+    }
+
+    /* ── CARD BASE ── */
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 24px var(--shadow-warm), 0 1px 3px rgba(0,0,0,0.04);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    /* ── DAY NAVIGATOR ── */
+    .nav-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 14px;
+    }
+    .nav-btn {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--cream);
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, transform 0.12s, opacity 0.2s;
+      user-select: none;
+    }
+    .nav-btn:not(:disabled):active { transform: scale(0.92); background: var(--gold-pale); }
+    .nav-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+    .day-info { text-align: center; flex: 1; }
+    .day-number {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .day-date {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+    }
+
+    /* ── READING CARD ── */
+    .reading-card { padding: 24px; }
+
+    .reading-label {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .reading-label::before {
+      content: '';
+      display: inline-block;
+      width: 20px; height: 1.5px;
+      background: var(--gold);
+    }
+
+    .reading-passages {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.45;
+      color: var(--ink);
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .reading-passages.done {
+      text-decoration: line-through;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    .reading-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-complete {
+      flex: 1;
+      min-width: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 18px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--cream);
+      color: var(--ink-muted);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-complete .check-icon {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--ink-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+    .btn-complete.done {
+      background: var(--sage-pale);
+      border-color: var(--sage);
+      color: var(--sage);
+    }
+    .btn-complete.done .check-icon {
+      background: var(--sage);
+      border-color: var(--sage);
+      color: #fff;
+    }
+    .btn-complete:active { transform: scale(0.97); }
+
+    .btn-read {
+      flex: 1;
+      min-width: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 18px;
+      border-radius: 14px;
+      background: var(--ink);
+      color: #fff;
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-read:active { transform: scale(0.97); opacity: 0.88; }
+    .btn-read .icon { font-size: 16px; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 24px;
+    }
+
+    /* ── JOURNAL CARD ── */
+    .journal-card { padding: 24px; }
+    .journal-label {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .journal-label::before {
+      content: '';
+      display: inline-block;
+      width: 20px; height: 1.5px;
+      background: var(--gold);
+    }
+    .journal-textarea {
+      width: 100%;
+      min-height: 140px;
+      background: var(--parchment);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--ink);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .journal-textarea::placeholder { color: var(--ink-light); font-style: italic; }
+    .journal-textarea:focus {
+      border-color: var(--gold);
+      background: #fff;
+    }
+
+    /* ── VERSE OF THE DAY (optional flourish) ── */
+    .gold-rule {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 4px 24px 0;
+      opacity: 0.5;
+    }
+
+    /* ── COMPLETION FLASH ── */
+    @keyframes flash-green {
+      0% { box-shadow: 0 0 0 0 rgba(45, 106, 79, 0.4); }
+      60% { box-shadow: 0 0 0 12px rgba(45, 106, 79, 0); }
+      100% { box-shadow: none; }
+    }
+    .card.flash { animation: flash-green 0.5s ease-out; }
+
+    /* ── PAGE TRANSITION ── */
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .reading-passages { animation: slide-in 0.25s ease; }
+
+    /* ── SWIPE HINT ── */
+    .swipe-hint {
+      text-align: center;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      color: var(--ink-light);
+      margin-top: -8px;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (min-width: 520px) {
+      .main { padding-top: 28px; }
+      .app-title { font-size: 32px; }
+      .reading-passages { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="top-band">
+    <div class="top-band-inner">
+      <div>
+        <div class="app-title">Daily <span>Word</span></div>
+        <div class="app-subtitle">365-Day Blended Plan</div>
+      </div>
+      <button class="btn-today" onclick="jumpToToday()">Today</button>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-strip">
+    <div class="progress-strip-inner">
+      <div class="progress-meta">
+        <span><span class="done-count" id="done-count">0</span> of 365 days read</span>
+        <span id="pct-label">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- Day Navigator -->
+    <div class="card nav-card">
+      <button class="nav-btn" id="btn-prev" onclick="changeDay(-1)" aria-label="Previous day">&#8592;</button>
+      <div class="day-info">
+        <div class="day-number" id="day-number">Day 1</div>
+        <div class="day-date" id="day-date"></div>
+      </div>
+      <button class="nav-btn" id="btn-next" onclick="changeDay(1)" aria-label="Next day">&#8594;</button>
+    </div>
+
+    <div class="swipe-hint" id="swipe-hint">Swipe left or right to navigate</div>
+
+    <!-- Reading + Actions -->
+    <div class="card" id="reading-card">
+      <div class="reading-card">
+        <div class="reading-label" id="reading-label">Assigned Reading</div>
+        <div class="reading-passages" id="reading-text">Loading…</div>
+
+        <div class="reading-actions">
+          <button class="btn-complete" id="btn-complete" onclick="toggleComplete()">
+            <div class="check-icon" id="check-icon"></div>
+            <span id="complete-label">Mark Complete</span>
+          </button>
+          <a href="#" id="btn-read" target="_blank" class="btn-read">
+            <span class="icon">📖</span> Read Now
+          </a>
+        </div>
+      </div>
+      <div class="gold-rule"></div>
+      <div class="divider" style="margin-top:0; opacity:0.4;"></div>
+
+      <!-- Journal -->
+      <div class="journal-card">
+        <div class="journal-label">Journal Notes</div>
+        <textarea
+          class="journal-textarea"
+          id="notes"
+          placeholder="What stood out to you today? Write a prayer or reflection…"
+          oninput="saveNote()"
+        ></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  // ── READING PLAN ──────────────────────────────────────────────────────────
+  const plan = [
+    "Start",
+    "Gen 1-3, Matt 1","Gen 4-6, Matt 2","Gen 7-9, Matt 3","Gen 10-12, Matt 4","Gen 13-15, Matt 5","Gen 16-18, Matt 6","Gen 19-21, Matt 7",
+    "Gen 22-24, Matt 8","Gen 25-27, Matt 9","Gen 28-30, Matt 10","Gen 31-33, Matt 11","Gen 34-36, Matt 12","Gen 37-39, Matt 13","Gen 40-42, Matt 14",
+    "Gen 43-45, Matt 15","Gen 46-48, Matt 16","Gen 49-50, Matt 17","Ex 1-3, Matt 18","Ex 4-6, Matt 19","Ex 7-9, Matt 20","Ex 10-12, Matt 21",
+    "Ex 13-15, Matt 22","Ex 16-18, Matt 23","Ex 19-21, Matt 24","Ex 22-24, Matt 25","Ex 25-27, Matt 26","Ex 28-30, Matt 27","Ex 31-33, Matt 28",
+    "Ex 34-36, Mark 1","Ex 37-38, Mark 2","Ex 39-40, Mark 3","Lev 1-3, Mark 4","Lev 4-6, Mark 5","Lev 7-9, Mark 6","Lev 10-12, Mark 7",
+    "Lev 13-14, Mark 8","Lev 15-17, Mark 9","Lev 18-20, Mark 10","Lev 21-23, Mark 11","Lev 24-25, Mark 12","Lev 26-27, Mark 13","Num 1-2, Mark 14",
+    "Num 3-4, Mark 15","Num 5-6, Mark 16","Num 7-8, Luke 1","Num 9-11, Luke 2","Num 12-14, Luke 3","Num 15-17, Luke 4","Num 18-20, Luke 5",
+    "Num 21-23, Luke 6","Num 24-26, Luke 7","Num 27-29, Luke 8","Num 30-32, Luke 9","Num 33-34, Luke 10","Num 35-36, Luke 11","Deut 1-2, Luke 12",
+    "Deut 3-5, Luke 13","Deut 6-8, Luke 14","Deut 9-11, Luke 15","Deut 12-14, Luke 16","Deut 15-17, Luke 17","Deut 18-20, Luke 18","Deut 21-23, Luke 19",
+    "Deut 24-26, Luke 20","Deut 27-28, Luke 21","Deut 29-31, Luke 22","Deut 32-34, Luke 23","Josh 1-3, Luke 24","Josh 4-6, John 1","Josh 7-9, John 2",
+    "Josh 10-12, John 3","Josh 13-15, John 4","Josh 16-18, John 5","Josh 19-21, John 6","Josh 22-24, John 7","Judg 1-3, John 8","Judg 4-6, John 9",
+    "Judg 7-8, John 10","Judg 9-10, John 11","Judg 11-13, John 12","Judg 14-16, John 13","Judg 17-19, John 14","Judg 20-21, John 15","Ruth 1-4, John 16",
+    "1 Sam 1-3, John 17","1 Sam 4-6, John 18","1 Sam 7-9, John 19","1 Sam 10-12, John 20","1 Sam 13-15, John 21","1 Sam 16-18, Acts 1","1 Sam 19-21, Acts 2",
+    "1 Sam 22-24, Acts 3","1 Sam 25-27, Acts 4","1 Sam 28-31, Acts 5","2 Sam 1-3, Acts 6","2 Sam 4-6, Acts 7","2 Sam 7-9, Acts 8","2 Sam 10-12, Acts 9",
+    "2 Sam 13-15, Acts 10","2 Sam 16-18, Acts 11","2 Sam 19-21, Acts 12","2 Sam 22-24, Acts 13","1 Kgs 1-2, Acts 14","1 Kgs 3-5, Acts 15","1 Kgs 6-8, Acts 16",
+    "1 Kgs 9-11, Acts 17","1 Kgs 12-14, Acts 18","1 Kgs 15-17, Acts 19","1 Kgs 18-20, Acts 20","1 Kgs 21-22, Acts 21","2 Kgs 1-3, Acts 22","2 Kgs 4-6, Acts 23",
+    "2 Kgs 7-9, Acts 24","2 Kgs 10-12, Acts 25","2 Kgs 13-15, Acts 26","2 Kgs 16-18, Acts 27","2 Kgs 19-21, Acts 28","2 Kgs 22-25, Rom 1","1 Chr 1-3, Rom 2",
+    "1 Chr 4-6, Rom 3","1 Chr 7-9, Rom 4","1 Chr 10-12, Rom 5","1 Chr 13-15, Rom 6","1 Chr 16-18, Rom 7","1 Chr 19-21, Rom 8","1 Chr 22-24, Rom 9",
+    "1 Chr 25-27, Rom 10","1 Chr 28-29, Rom 11","2 Chr 1-3, Rom 12","2 Chr 4-6, Rom 13","2 Chr 7-9, Rom 14","2 Chr 10-12, Rom 15","2 Chr 13-15, Rom 16",
+    "2 Chr 16-18, 1 Cor 1","2 Chr 19-21, 1 Cor 2","2 Chr 22-24, 1 Cor 3","2 Chr 25-27, 1 Cor 4","2 Chr 28-30, 1 Cor 5","2 Chr 31-33, 1 Cor 6","2 Chr 34-36, 1 Cor 7",
+    "Ezra 1-3, 1 Cor 8","Ezra 4-6, 1 Cor 9","Ezra 7-10, 1 Cor 10","Neh 1-3, 1 Cor 11","Neh 4-6, 1 Cor 12","Neh 7-9, 1 Cor 13","Neh 10-13, 1 Cor 14",
+    "Est 1-3, 1 Cor 15","Est 4-7, 1 Cor 16","Est 8-10, 2 Cor 1","Job 1-3, 2 Cor 2","Job 4-6, 2 Cor 3","Job 7-9, 2 Cor 4","Job 10-12, 2 Cor 5",
+    "Job 13-15, 2 Cor 6","Job 16-18, 2 Cor 7","Job 19-21, 2 Cor 8","Job 22-24, 2 Cor 9","Job 25-27, 2 Cor 10","Job 28-30, 2 Cor 11","Job 31-33, 2 Cor 12",
+    "Job 34-36, 2 Cor 13","Job 37-39, Gal 1","Job 40-42, Gal 2","Ps 1-3, Gal 3","Ps 4-6, Gal 4","Ps 7-9, Gal 5","Ps 10-12, Gal 6",
+    "Ps 13-15, Eph 1","Ps 16-18, Eph 2","Ps 19-21, Eph 3","Ps 22-24, Eph 4","Ps 25-27, Eph 5","Ps 28-30, Eph 6","Ps 31-33, Phil 1",
+    "Ps 34-36, Phil 2","Ps 37-39, Phil 3","Ps 40-42, Phil 4","Ps 43-45, Col 1","Ps 46-48, Col 2","Ps 49-51, Col 3","Ps 52-54, Col 4",
+    "Ps 55-57, 1 Thes 1","Ps 58-60, 1 Thes 2","Ps 61-63, 1 Thes 3","Ps 64-66, 1 Thes 4","Ps 67-69, 1 Thes 5","Ps 70-72, 2 Thes 1","Ps 73-75, 2 Thes 2",
+    "Ps 76-78, 2 Thes 3","Ps 79-81, 1 Tim 1","Ps 82-84, 1 Tim 2","Ps 85-87, 1 Tim 3","Ps 88-90, 1 Tim 4","Ps 91-93, 1 Tim 5","Ps 94-96, 1 Tim 6",
+    "Ps 97-99, 2 Tim 1","Ps 100-102, 2 Tim 2","Ps 103-105, 2 Tim 3","Ps 106-108, 2 Tim 4","Ps 109-111, Titus 1","Ps 112-114, Titus 2","Ps 115-117, Titus 3",
+    "Ps 118-119:1-88, Phlm 1","Ps 119:89-176, Heb 1","Ps 120-122, Heb 2","Ps 123-125, Heb 3","Ps 126-128, Heb 4","Ps 129-131, Heb 5","Ps 132-134, Heb 6",
+    "Ps 135-137, Heb 7","Ps 138-140, Heb 8","Ps 141-143, Heb 9","Ps 144-146, Heb 10","Ps 147-149, Heb 11","Ps 150, Prov 1, Heb 12","Prov 2-4, Heb 13",
+    "Prov 5-7, Jas 1","Prov 8-10, Jas 2","Prov 11-13, Jas 3","Prov 14-16, Jas 4","Prov 17-19, Jas 5","Prov 20-22, 1 Pet 1","Prov 23-25, 1 Pet 2",
+    "Prov 26-28, 1 Pet 3","Prov 29-31, 1 Pet 4","Eccl 1-3, 1 Pet 5","Eccl 4-6, 2 Pet 1","Eccl 7-9, 2 Pet 2","Eccl 10-12, 2 Pet 3","Song 1-3, 1 Jn 1",
+    "Song 4-6, 1 Jn 2","Song 7-8, 1 Jn 3","Isa 1-3, 1 Jn 4","Isa 4-6, 1 Jn 5","Isa 7-9, 2 Jn 1","Isa 10-12, 3 Jn 1","Isa 13-15, Jude 1",
+    "Isa 16-18, Rev 1","Isa 19-21, Rev 2","Isa 22-24, Rev 3","Isa 25-27, Rev 4","Isa 28-30, Rev 5","Isa 31-33, Rev 6","Isa 34-36, Rev 7",
+    "Isa 37-39, Rev 8","Isa 40-42, Rev 9","Isa 43-45, Rev 10","Isa 46-48, Rev 11","Isa 49-51, Rev 12","Isa 52-54, Rev 13","Isa 55-57, Rev 14",
+    "Isa 58-60, Rev 15","Isa 61-63, Rev 16","Isa 64-66, Rev 17","Jer 1-3, Rev 18","Jer 4-6, Rev 19","Jer 7-9, Rev 20","Jer 10-12, Rev 21",
+    "Jer 13-15, Rev 22","Jer 16-18, Matt 1","Jer 19-21, Matt 2","Jer 22-24, Matt 3","Jer 25-27, Matt 4","Jer 28-30, Matt 5","Jer 31-33, Matt 6",
+    "Jer 34-36, Matt 7","Jer 37-39, Matt 8","Jer 40-42, Matt 9","Jer 43-45, Matt 10","Jer 46-48, Matt 11","Jer 49-50, Matt 12","Jer 51-52, Matt 13",
+    "Lam 1-2, Matt 14","Lam 3-5, Matt 15","Ezek 1-3, Matt 16","Ezek 4-6, Matt 17","Ezek 7-9, Matt 18","Ezek 10-12, Matt 19","Ezek 13-15, Matt 20",
+    "Ezek 16-18, Matt 21","Ezek 19-21, Matt 22","Ezek 22-24, Matt 23","Ezek 25-27, Matt 24","Ezek 28-30, Matt 25","Ezek 31-33, Matt 26","Ezek 34-36, Matt 27",
+    "Ezek 37-39, Matt 28","Ezek 40-42, Mark 1","Ezek 43-45, Mark 2","Ezek 46-48, Mark 3","Dan 1-3, Mark 4","Dan 4-6, Mark 5","Dan 7-9, Mark 6",
+    "Dan 10-12, Mark 7","Hos 1-3, Mark 8","Hos 4-6, Mark 9","Hos 7-9, Mark 10","Hos 10-12, Mark 11","Hos 13-14, Mark 12","Joel 1-3, Mark 13",
+    "Amos 1-3, Mark 14","Amos 4-6, Mark 15","Amos 7-9, Mark 16","Obadiah, Luke 1","Jonah 1-4, Luke 2","Micah 1-3, Luke 3","Micah 4-7, Luke 4",
+    "Nahum 1-3, Luke 5","Hab 1-3, Luke 6","Zeph 1-3, Luke 7","Haggai 1-2, Luke 8","Zech 1-3, Luke 9","Zech 4-6, Luke 10","Zech 7-9, Luke 11",
+    "Zech 10-12, Luke 12","Zech 13-14, Luke 13","Mal 1-2, Luke 14","Mal 3-4, Luke 15","Ps 1-5, Luke 16","Ps 6-10, Luke 17","Ps 11-15, Luke 18",
+    "Ps 16-20, Luke 19","Ps 21-25, Luke 20","Ps 26-30, Luke 21","Ps 31-35, Luke 22","Ps 36-40, Luke 23","Ps 41-45, Luke 24","Ps 46-50, John 1",
+    "Ps 51-55, John 2","Ps 56-60, John 3","Ps 61-65, John 4","Ps 66-70, John 5","Ps 71-75, John 6","Ps 76-80, John 7","Ps 81-85, John 8",
+    "Ps 86-90, John 9","Ps 91-95, John 10","Ps 96-100, John 11","Ps 101-105, John 12","Ps 106-110, John 13","Ps 111-115, John 14","Ps 116-118, John 15",
+    "Ps 119:1-88, John 16","Ps 119:89-176, John 17","Ps 120-125, John 18","Ps 126-130, John 19","Ps 131-135, John 20","Ps 136-140, John 21","Ps 141-145, Prov 1-3",
+    "Ps 146-150, Prov 4-6","Prov 7-9, Prov 10-12","Prov 13-15, Prov 16-18","Prov 19-21, Prov 22-24","Prov 25-27, Prov 28-31","Phil 1-2, Eph 1-3","Phil 3-4, Eph 4-6",
+    "Col 1-2, 1 Jn 1-2","Col 3-4, 1 Jn 3-5","Titus 1-3, Jas 1-2","Philemon, Jas 3-5","1 Pet 1-3, 2 Pet 1-3","1 Pet 4-5, Jude","Ps 100, Rev 21-22",
+    "Ps 150"
+  ];
+
+  // ── STORAGE ───────────────────────────────────────────────────────────────
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || '{}'); } catch { return {}; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { console.warn('Storage unavailable'); } }
+  };
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let currentDay = 1;
+  let completed  = store.get('bible365_done');
+  let notesData  = store.get('bible365_notes');
+
+  // ── UI REFS ───────────────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const el = {
+    dayNum:   $('day-number'),
+    dayDate:  $('day-date'),
+    rdgText:  $('reading-text'),
+    rdgLabel: $('reading-label'),
+    btnComplete: $('btn-complete'),
+    checkIcon:   $('check-icon'),
+    completeLabel: $('complete-label'),
+    btnRead:  $('btn-read'),
+    notes:    $('notes'),
+    btnPrev:  $('btn-prev'),
+    btnNext:  $('btn-next'),
+    doneCount:    $('done-count'),
+    pctLabel:     $('pct-label'),
+    progressFill: $('progress-fill'),
+    rdgCard:  $('reading-card'),
+  };
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function getToday() {
+    const now   = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    return Math.max(1, Math.min(365, Math.floor((now - start) / 86400000) + 1));
+  }
+
+  function dayToDate(dayNum) {
+    const d = new Date(new Date().getFullYear(), 0, dayNum);
+    return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+  }
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
+  function render() {
+    currentDay = Math.max(1, Math.min(365, currentDay));
+    const verses   = plan[currentDay] || '—';
+    const isDone   = !!completed[currentDay];
+
+    el.dayNum.textContent  = `Day ${currentDay}`;
+    el.dayDate.textContent = dayToDate(currentDay);
+
+    // animate reading text
+    el.rdgText.style.animation = 'none';
+    el.rdgText.offsetHeight;       // reflow
+    el.rdgText.style.animation    = '';
+    el.rdgText.textContent = verses;
+    el.rdgText.className   = 'reading-passages' + (isDone ? ' done' : '');
+
+    // reading label
+    el.rdgLabel.textContent = isDone ? '✓ Completed' : 'Assigned Reading';
+
+    // complete button
+    el.btnComplete.className     = 'btn-complete' + (isDone ? ' done' : '');
+    el.checkIcon.textContent     = isDone ? '✓' : '';
+    el.completeLabel.textContent = isDone ? 'Completed' : 'Mark Complete';
+
+    // read link
+    el.btnRead.href = `https://www.biblegateway.com/passage/?search=${encodeURIComponent(verses)}&version=NIV`;
+
+    // nav
+    el.btnPrev.disabled = currentDay === 1;
+    el.btnNext.disabled = currentDay === 365;
+
+    // notes
+    el.notes.value = notesData[currentDay] || '';
+
+    // progress
+    const doneCount = Object.values(completed).filter(Boolean).length;
+    const pct       = Math.round((doneCount / 365) * 100);
+    el.doneCount.textContent    = doneCount;
+    el.pctLabel.textContent     = pct + '%';
+    el.progressFill.style.width = pct + '%';
+  }
+
+  // ── ACTIONS ───────────────────────────────────────────────────────────────
+  function changeDay(delta) {
+    currentDay = Math.max(1, Math.min(365, currentDay + delta));
+    render();
+    // hide swipe hint after first use
+    $('swipe-hint').style.display = 'none';
+  }
+
+  function jumpToToday() {
+    currentDay = getToday();
+    render();
+  }
+
+  function toggleComplete() {
+    completed[currentDay] = !completed[currentDay];
+    store.set('bible365_done', completed);
+    if (navigator.vibrate) navigator.vibrate(40);
+    // flash card
+    el.rdgCard.classList.remove('flash');
+    el.rdgCard.offsetHeight;
+    if (completed[currentDay]) el.rdgCard.classList.add('flash');
+    render();
+  }
+
+  function saveNote() {
+    notesData[currentDay] = el.notes.value;
+    store.set('bible365_notes', notesData);
+  }
+
+  // ── SWIPE (MOBILE) ────────────────────────────────────────────────────────
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 60) {
+      // only swipe on the main content area (not textarea)
+      if (document.activeElement !== el.notes) changeDay(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  currentDay = getToday();
+  render();
+  </script>
+</body>
+</html>
