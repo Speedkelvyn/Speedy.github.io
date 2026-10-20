@@ -12,3 +12,7 @@ ignore = ["RUF001", "RUF002", "RUF003", "E731", "E501"]  # E501: line length is 
 
 [format]
 quote-style = "double"
+
+[lint.isort]
+# local modules imported by sibling scripts
+known-first-party = ["fx_forecasting", "models", "valuation_v2", "excel_model", "research", "framework", "run_valuation", "gmail_reader"]

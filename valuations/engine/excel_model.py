@@ -33,11 +33,12 @@ import re
 import sys
 
 import numpy as np
-import valuation_v2 as v
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter as L
 from openpyxl.workbook.defined_name import DefinedName
+
+import valuation_v2 as v
 
 N, EXPLICIT = v.N, v.EXPLICIT
 FONT = "Arial"

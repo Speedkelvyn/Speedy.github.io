@@ -1,0 +1,379 @@
+---
+title: "Can Models Beat the Random Walk in Exchange Rates?"
+subtitle: "A daily volatility benchmark and a monthly macro-risk panel, 1999–2025"
+author: "Kelvin Afful"
+date: last-modified
+date-format: "D MMMM YYYY"
+abstract: |
+  Using only information available at each forecast date, I test two ways of beating the random walk in exchange rates. For daily USD/JPY, an AR(1)-GARCH(1,1) model does not forecast returns better than a random walk, but it forecasts volatility well. In a monthly panel of six major currencies against the US dollar (2012–2025 out of sample), an Elastic Net, a deep neural network and their ensemble fed with interest-rate, inflation and unemployment differentials interacted with global risk (VIX, geopolitical risk, policy uncertainty) do not beat the random walk overall. The neural network does beat it in high-risk months, the state in which theory says fundamentals should matter, and loses in calm months. The results replace an earlier version of this project whose positive headline came from data and look-ahead errors.
+output-file: index.html
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    code-fold: true
+    code-summary: "Show code"
+    theme: cosmo
+    embed-resources: true
+    fig-align: center
+    html-math-method: mathml
+execute:
+  warning: false
+  message: false
+jupyter: python3
+---
+
+```{python}
+#| label: setup
+#| include: false
+import numpy as np
+import pandas as pd
+import altair as alt
+import statsmodels.api as sm
+from IPython.display import Markdown
+
+import fx_forecasting as F
+
+alt.renderers.enable("svg")
+alt.data_transformers.disable_max_rows()
+pd.options.display.float_format = "{:,.3f}".format
+
+BLUE, ORANGE, GREY, GREEN, RED = "#1f4e79", "#e07b00", "#8c8c8c", "#2e7d32", "#c62828"
+
+
+def table(df: pd.DataFrame, fmt: dict) -> Markdown:
+    """Render a DataFrame as a Markdown table with per-column number formats."""
+    d = df.copy()
+    for c, f in fmt.items():
+        d[c] = d[c].map(lambda v, f=f: f.format(v + 0.0).replace("-0.00", "0.00") if pd.notna(v) else "–")
+    return Markdown(d.to_markdown(index=False))
+
+
+def stars(p: float) -> str:
+    return "***" if p < 0.01 else "**" if p < 0.05 else "*" if p < 0.10 else ""
+
+
+# results produced by run_experiments.py
+daily = pd.read_csv("results/part1_usdjpy_daily_forecasts.csv", parse_dates=["date"])
+panel = pd.read_csv("results/part2_panel.csv", parse_dates=["date"])
+fc = pd.read_csv("results/part2_panel_forecasts.csv", parse_dates=["date"])
+MODELS = {"Elastic Net": "enet", "Deep neural network": "dnn", "Ensemble (EN + DNN)": "ensemble"}
+```
+
+# Introduction
+
+Meese and Rogoff (1983) showed that structural exchange-rate models forecast no better than a random walk, and four decades of work have mostly confirmed it. Two ideas keep the question open. First, models that cannot predict the *level* of a currency may still predict its *volatility*. Second, the link between fundamentals and currencies may only switch on in particular states of the world, for example when global risk is high, which a linear model averaged over all periods would miss. Filippou, Rapach, Taylor and Zhou (2020) use machine learning with fundamentals interacted with global risk states and report small but significant gains over the random walk.
+
+This study tests both ideas on public data with strictly real-time, out-of-sample forecasts:
+
+* **Part I** asks whether an AR(1)-GARCH(1,1) model improves on a random walk for daily USD/JPY, for both the expected return and its volatility.
+* **Part II** asks whether an Elastic Net, a deep neural network (DNN) and their ensemble, fed with interest-rate, inflation and unemployment differentials interacted with the VIX, geopolitical risk and policy uncertainty, beat the random walk in a monthly panel of six major currencies.
+
+# Data
+
+All inputs are public. Exchange rates, interest rates, prices, unemployment and the VIX come from FRED; the geopolitical risk index is from Caldara and Iacoviello (2022) and global economic policy uncertainty from Baker, Bloom and Davis (2016). `data/README.md` lists every series identifier.
+
+```{python}
+#| label: tbl-coverage
+#| tbl-cap: "Monthly panel coverage by currency"
+cov = (
+    panel.groupby("currency")["date"]
+    .agg(["min", "max", "count"])
+    .reindex(F.CURRENCIES)
+    .reset_index()
+    .rename(columns={"currency": "Currency", "min": "First month", "max": "Last month", "count": "Months"})
+)
+cov["First month"] = cov["First month"].dt.strftime("%b %Y")
+cov["Last month"] = cov["Last month"].dt.strftime("%b %Y")
+Markdown(cov.to_markdown(index=False))
+```
+
+Three construction choices matter for the results:
+
+1. **One quote convention.** Every rate is expressed as US dollars per unit of foreign currency, so a positive return always means the foreign currency strengthened. (The raw FRED series quote EUR, GBP and AUD that way but JPY, CHF and CAD the other way; pooling them unconverted would give the same signal opposite meanings.)
+2. **Real-time information.** The forecast for month $t+1$ is made at the end of month $t$. Inflation, unemployment and interest rates enter with a one-month publication lag, geopolitical risk and policy uncertainty with a one-month lag, and the VIX as its month-$t$ average, which is known by then.
+3. **No filling with zero, no trimming of the target.** A currency-month without its fundamentals is dropped. Japanese CPI on FRED ends in June 2021 and euro-area unemployment in January 2023, so those currencies leave the panel then.
+
+The panel has `{python} f"{len(panel):,}"` currency-months and `{python} len([c for c in panel.columns if c not in ('date','currency','target')])` predictors: the three differentials (foreign minus US), the three risk states, one- and three-month momentum, the nine fundamental × state interactions, and two further lags of each differential. Each interaction scales a differential by the state relative to its own history up to that month, so it measures "this fundamental, in an unusually risky month".
+
+```{python}
+#| label: fig-states
+#| fig-cap: "Global risk states: VIX (monthly average), geopolitical risk (GPR) and global economic policy uncertainty (EPU)"
+states = panel.drop_duplicates("date")[["date", "VIX", "GPR", "EPU"]].melt("date", var_name="State", value_name="Level")
+alt.Chart(states).mark_line(strokeWidth=1.2).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%Y")),
+    y=alt.Y("Level:Q", title=None),
+    color=alt.Color("State:N", scale=alt.Scale(range=[BLUE, ORANGE, GREEN]), legend=None),
+    row=alt.Row("State:N", title=None, header=alt.Header(labelAngle=0, labelAlign="left")),
+).properties(width=640, height=110).resolve_scale(y="independent")
+```
+
+# Part I — Daily USD/JPY: AR(1)-GARCH(1,1) against a random walk
+
+## Method
+
+Let $r_t = 100\,\ln(S_t/S_{t-1})$ be the daily log return of USD/JPY (yen per dollar). The model is
+
+$$
+r_t = \mu + \phi\, r_{t-1} + \varepsilon_t,\qquad \varepsilon_t = \sigma_t z_t,\qquad
+\sigma_t^2 = \omega + \alpha\,\varepsilon_{t-1}^2 + \beta\,\sigma_{t-1}^2 .
+$$
+
+The first 80% of the sample (January 2000 to May 2021) is the initial estimation window. For each of the remaining `{python} f"{len(daily):,}"` trading days the model is re-estimated on all data up to the previous close and produces a one-day-ahead forecast of the return and its volatility. The random walk forecasts no change. Price forecasts are $\hat S_t = S_{t-1}\exp(\hat r_t/100)$.
+
+## Return forecasts
+
+```{python}
+#| label: tbl-daily
+#| tbl-cap: "Daily USD/JPY one-step-ahead forecasts, June 2021 – October 2026"
+a = daily["actual_ret"].to_numpy()
+g = daily["garch_ret"].to_numpy()
+cw = F.clark_west(a, g, lags=5)
+dm = F.diebold_mariano(a, g, np.zeros_like(a), lags=5)
+dt = F.direction_test(a, g)
+dm_px = F.diebold_mariano(daily.actual_price.to_numpy(), daily.garch_price.to_numpy(), daily.rw_price.to_numpy(), lags=5)
+err = lambda c: daily[c] - daily["actual_price"]
+part1 = pd.DataFrame(
+    {
+        "Model": ["Random walk", "AR(1)-GARCH(1,1)"],
+        "Price RMSE (¥)": [np.sqrt((err("rw_price") ** 2).mean()), np.sqrt((err("garch_price") ** 2).mean())],
+        "Price MAE (¥)": [err("rw_price").abs().mean(), err("garch_price").abs().mean()],
+        "R²_OS (%)": [0.0, F.r2_os(a, g)],
+        "Hit rate (%)": [np.nan, dt["hit_rate"]],
+    }
+)
+table(part1, {"Price RMSE (¥)": "{:.4f}", "Price MAE (¥)": "{:.4f}", "R²_OS (%)": "{:.2f}", "Hit rate (%)": "{:.1f}"})
+```
+
+```{python}
+#| include: false
+P1 = dict(r2=F.r2_os(a, g), cw_p=cw["p"], dm_p=dm["p"], dm_px_p=dm_px["p"], hit=dt["hit_rate"], pt_p=dt["p"],
+          up=100 * np.mean(g > 0), rmse_gain=100 * (1 - np.sqrt((err("garch_price") ** 2).mean()) / np.sqrt((err("rw_price") ** 2).mean())))
+```
+
+The AR(1)-GARCH(1,1) gives an out-of-sample $R^2$ of `{python} f"{P1['r2']:.2f}"`% for daily returns, which the Clark-West test does not distinguish from zero at the 5% level (p = `{python} f"{P1['cw_p']:.3f}"`); the Diebold-Mariano test on price errors gives p = `{python} f"{P1['dm_px_p']:.2f}"`. In price terms the RMSE improvement is `{python} f"{P1['rmse_gain']:.2f}"`%: a fraction of a sen per day. The `{python} f"{P1['hit']:.1f}"`% hit rate looks better than it is: the model forecast a rising dollar on `{python} f"{P1['up']:.0f}"`% of days during a period when the dollar mostly rose against the yen, and the Pesaran-Timmermann test (p = `{python} f"{P1['pt_p']:.2f}"`) finds no genuine directional skill. This is the Meese-Rogoff result in miniature: the conditional mean of daily FX returns is almost unpredictable.
+
+```{python}
+#| label: fig-daily-cssed
+#| fig-cap: "Cumulative squared-error difference, random walk minus AR(1)-GARCH(1,1). A rising line means the model is ahead."
+cs = pd.DataFrame({"date": daily["date"], "Cumulative SSE difference": np.cumsum(a**2 - (a - g) ** 2)})
+line = alt.Chart(cs).mark_line(color=BLUE).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%Y", tickCount="year")),
+    y=alt.Y("Cumulative SSE difference:Q", title="Cumulative SSE difference"),
+)
+zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color=GREY, strokeDash=[4, 3]).encode(y=alt.Y("y:Q", title="Cumulative SSE difference"))
+(zero + line).properties(width=640, height=260)
+```
+
+## Volatility forecasts
+
+```{python}
+#| include: false
+mz = sm.OLS(a**2, sm.add_constant(daily["garch_vol"].to_numpy() ** 2)).fit(cov_type="HAC", cov_kwds={"maxlags": 5})
+naive_var = pd.Series(a).shift(1).rolling(21).var().to_numpy()
+ok = ~np.isnan(naive_var)
+qlike = lambda v: np.mean(a[ok] ** 2 / v[ok] - np.log(a[ok] ** 2 / v[ok] + 1e-12) - 1)
+P1v = dict(b0=mz.params[0], b1=mz.params[1], b1_se=mz.bse[1], r2=100 * mz.rsquared,
+           corr=np.corrcoef(np.abs(a), daily["garch_vol"])[0, 1],
+           mse_g=np.mean((a[ok] ** 2 - daily["garch_vol"].to_numpy()[ok] ** 2) ** 2), mse_n=np.mean((a[ok] ** 2 - naive_var[ok]) ** 2))
+```
+
+The GARCH part of the model is where the information is. Regressing squared returns on the forecast variance (a Mincer-Zarnowitz regression) gives a slope of `{python} f"{P1v['b1']:.2f}"` (HAC standard error `{python} f"{P1v['b1_se']:.2f}"`), and the forecast volatility tracks the size of the next day's move (correlation with absolute returns `{python} f"{P1v['corr']:.2f}"`). Its mean squared error for squared returns is `{python} f"{100 * (1 - P1v['mse_g'] / P1v['mse_n']):.1f}"`% lower than that of a 21-day rolling variance: a modest gain over a simple rule, but the slope is close to one and clearly positive. Volatility, unlike direction, is forecastable, which matters for risk limits, option pricing and position sizing even when the mean forecast is no better than a coin.
+
+```{python}
+#| label: fig-daily-vol
+#| fig-cap: "Absolute daily USD/JPY returns and the GARCH one-day-ahead volatility forecast"
+vol = daily.assign(abs_ret=np.abs(a))[["date", "abs_ret", "garch_vol"]]
+pts = alt.Chart(vol).mark_point(size=6, opacity=0.35, color=GREY, filled=True).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%Y", tickCount="year")), y=alt.Y("abs_ret:Q", title="Absolute return / forecast volatility (%)")
+)
+vline = alt.Chart(vol).mark_line(color=ORANGE, strokeWidth=1.6).encode(x="date:T", y="garch_vol:Q")
+(pts + vline).properties(width=640, height=260)
+```
+
+# Part II — Monthly panel: machine learning with fundamentals and global risk
+
+## Method
+
+The target is the next month's return of each currency against the dollar, $r_{c,t+1}=100\ln(S_{c,t+1}/S_{c,t})$. Forecasts start in January 2012 and are produced every month through the end of the sample with an expanding window: at each forecast date all three models are re-estimated on every currency-month observed so far, with predictors standardised on that training window only.
+
+* **Random walk (benchmark):** $\hat r_{c,t+1}=0$.
+* **Elastic Net:** penalised linear regression without an intercept, as in Filippou et al. (2020). The penalty and L1/L2 mix are chosen by five-fold *time-series* cross-validation, so no fold trains on data that come after it.
+* **Deep neural network:** three hidden layers (64, 32, 16 units) with layer normalisation, ReLU and dropout of 0.1, Kaiming initialisation, Adam (learning rate $10^{-3}$, weight decay $10^{-4}$), gradient clipping and early stopping on the most recent 10% of the training window. The forecast is the average of three networks trained from different random seeds, which removes most of the run-to-run noise of a single network.
+* **Ensemble:** the average of the Elastic Net and DNN forecasts.
+
+Accuracy is measured by the out-of-sample $R^2$ of Campbell and Thompson (2008),
+
+$$
+R^2_{OS} = 1-\frac{\sum_{c,t}\left(r_{c,t+1}-\hat r_{c,t+1}\right)^2}{\sum_{c,t} r_{c,t+1}^2},
+$$
+
+which is positive when the model beats the random walk. Because each model nests the random walk (all coefficients zero), significance is judged with the Clark and West (2007) test rather than Diebold-Mariano, which is undersized for nested comparisons. Direction forecasts are tested with Pesaran and Timmermann (1992).
+
+## Results
+
+```{python}
+#| label: tbl-panel
+#| tbl-cap: "Out-of-sample performance, all currencies pooled, January 2012 – end of sample. CW: Clark-West one-sided p-value (H₀: no improvement over the random walk). PT: Pesaran-Timmermann p-value for direction."
+summ = F.summarise(fc, MODELS)
+summ.insert(2, "", summ["CW p-value"].map(stars))
+table(summ, {"R²_OS (%)": "{:.2f}", "CW stat": "{:.2f}", "CW p-value": "{:.3f}", "RMSE": "{:.3f}", "Hit rate (%)": "{:.1f}", "PT p-value": "{:.3f}"})
+```
+
+```{python}
+#| include: false
+S = summ.set_index("Model")
+N_FC, N_MONTHS = len(fc), fc["date"].nunique()
+best = S["R²_OS (%)"].idxmax()
+```
+
+Over `{python} N_MONTHS` months and `{python} f"{N_FC:,}"` currency-month forecasts, none of the three models beats the random walk: out-of-sample $R^2$ is `{python} f"{S.loc['Elastic Net', 'R²_OS (%)']:.2f}"`% for the Elastic Net, `{python} f"{S.loc['Deep neural network', 'R²_OS (%)']:.2f}"`% for the DNN and `{python} f"{S.loc['Ensemble (EN + DNN)', 'R²_OS (%)']:.2f}"`% for the ensemble, and no Clark-West statistic is positive. The Elastic Net is honest about this: cross-validation chooses a penalty strong enough to set the forecast to exactly zero in `{python} f"{100 * (fc['enet'] == 0).mean():.0f}"`% of currency-months, so it is almost the random walk itself. The DNN takes larger positions; its forecasts vary about ten times as much as the Elastic Net's, and the extra variance costs more in squared error than its signal adds. Its direction forecasts are right `{python} f"{S.loc['Deep neural network', 'Hit rate (%)']:.1f}"`% of the time, marginally significant by the Pesaran-Timmermann test (p = `{python} f"{S.loc['Deep neural network', 'PT p-value']:.3f}"`).
+
+```{python}
+#| label: fig-panel-cssed
+#| fig-cap: "Cumulative squared-error difference against the random walk (pooled across currencies each month). Above zero: the model has done better so far."
+cs = []
+for name, col in MODELS.items():
+    m = fc.assign(d=fc["actual"] ** 2 - (fc["actual"] - fc[col]) ** 2).groupby("date")["d"].sum().cumsum()
+    cs.append(pd.DataFrame({"date": m.index, "Cumulative SSE difference": m.values, "Model": name}))
+cs = pd.concat(cs)
+line = alt.Chart(cs).mark_line(strokeWidth=1.6).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%Y")),
+    y=alt.Y("Cumulative SSE difference:Q", title="Cumulative SSE difference"),
+    color=alt.Color("Model:N", scale=alt.Scale(domain=list(MODELS), range=[BLUE, ORANGE, GREEN]), legend=alt.Legend(orient="bottom", title=None)),
+)
+(zero + line).properties(width=640, height=300)
+```
+
+## Where the models help: currencies and risk regimes
+
+```{python}
+#| label: tbl-by-currency
+#| tbl-cap: "Out-of-sample R² (%) by currency"
+rows = []
+for ccy, g_ in fc.groupby("currency"):
+    rows.append({"Currency": ccy, "Months": len(g_), **{n: F.r2_os(g_["actual"].to_numpy(), g_[c].to_numpy()) for n, c in MODELS.items()}})
+by_ccy = pd.DataFrame(rows).set_index("Currency").reindex(F.CURRENCIES).dropna(how="all").reset_index()
+table(by_ccy, {n: "{:.2f}" for n in MODELS})
+```
+
+```{python}
+#| label: tbl-regime
+#| tbl-cap: "Out-of-sample R² (%) in high- and low-risk months. High risk: the month's VIX is above its median over all earlier months."
+vix_m = panel.drop_duplicates("date").set_index("date")["VIX"].sort_index()
+high = (vix_m > vix_m.expanding().median().shift(1)).rename("high")
+fr = fc.merge(high, left_on="date", right_index=True)
+rows = []
+for label, g_ in (("High VIX", fr[fr["high"]]), ("Low VIX", fr[~fr["high"]])):
+    rows.append({"Regime": label, "Months": g_["date"].nunique(),
+                 **{n: F.r2_os(g_["actual"].to_numpy(), g_[c].to_numpy()) for n, c in MODELS.items()}})
+reg = pd.DataFrame(rows)
+hi = fr[fr["high"]]
+CW_HIGH = {c: F.clark_west(hi["actual"].to_numpy(), hi[c].to_numpy())["p"] for c in MODELS.values()}
+table(reg, {n: "{:.2f}" for n in MODELS})
+```
+
+```{python}
+#| include: false
+RG = reg.set_index("Regime")
+CC = by_ccy.set_index("Currency")
+```
+
+The pooled result hides a sharp split. In the `{python} int(RG.loc['High VIX', 'Months'])` high-risk months the DNN beats the random walk with an $R^2_{OS}$ of `{python} f"{RG.loc['High VIX', 'Deep neural network']:.2f}"`%, significant at the 5% level by the Clark-West test (p = `{python} f"{CW_HIGH['dnn']:.3f}"`); the ensemble gives `{python} f"{RG.loc['High VIX', 'Ensemble (EN + DNN)']:.2f}"`% (p = `{python} f"{CW_HIGH['ensemble']:.3f}"`). In the `{python} int(RG.loc['Low VIX', 'Months'])` calm months it loses badly (`{python} f"{RG.loc['Low VIX', 'Deep neural network']:.2f}"`%). This is the pattern Filippou et al. (2020) predict: fundamentals, interacted with global risk, carry information when risk is high and mostly noise otherwise. A model that only forecasts when the VIX is above its historical median, and otherwise defers to the random walk, would have kept the gain and avoided the loss. Across currencies the DNN does best for the euro (`{python} f"{CC.loc['EUR', 'Deep neural network']:.2f}"`%) and worst for the yen (`{python} f"{CC.loc['JPY', 'Deep neural network']:.2f}"`%), whose 2013–2015 and 2021–2022 moves were driven by Bank of Japan policy that the differentials capture poorly. With 48 high-risk months the regime result is suggestive rather than conclusive, but it was the hypothesis stated before the test, not one found by searching across splits.
+
+## Economic value
+
+```{python}
+#| label: tbl-strategy
+#| tbl-cap: "A simple currency strategy: each month, go long currencies the model expects to rise and short those it expects to fall, equally weighted. Spot returns only: no transaction costs and no interest carry."
+def strategy(col):
+    pos = np.sign(fc[col])
+    r = (pos * fc["actual"]).groupby(fc["date"]).mean()
+    return r
+
+
+rows = []
+for name, col in MODELS.items():
+    r = strategy(col)
+    rows.append({"Model": name, "Mean (% p.a.)": 12 * r.mean(), "Volatility (% p.a.)": np.sqrt(12) * r.std(),
+                 "Sharpe ratio": np.sqrt(12) * r.mean() / r.std(), "t-stat": r.mean() / (r.std() / np.sqrt(len(r)))})
+strat = pd.DataFrame(rows)
+table(strat, {"Mean (% p.a.)": "{:.2f}", "Volatility (% p.a.)": "{:.2f}", "Sharpe ratio": "{:.2f}", "t-stat": "{:.2f}"})
+```
+
+None of the strategies earns a return distinguishable from zero (all t-statistics well below 2). Statistical gains of this size rarely survive as trading profits, and these returns exclude both transaction costs and the interest-rate carry earned on the long and short positions.
+
+# What changed from the earlier version
+
+An earlier draft of this project reported an out-of-sample $R^2$ of 0.75% for the neural network. That figure does not survive a correct test, for reasons that are worth recording:
+
+| Issue in the earlier pipeline | Effect | Fix here |
+|---|---|---|
+| No VIX series in the data; the code substituted a constant of 20 | Every "× VIX" feature was the fundamental times one; no regime information | VIX from FRED (VIXCLS) |
+| Inflation differentials of up to ±30,000 percentage points | Noise dominated the inflation features | Inflation recomputed from price indices as 12-month log changes |
+| Interest-rate *levels* loaded where differentials were intended; missing values set to 0 | Wrong economic variable; zeros treated as real data | Foreign-minus-US 3-month rates; missing months dropped |
+| Currencies pooled with opposite quote conventions | The same signal meant appreciation for some currencies and depreciation for others | All rates as USD per foreign unit |
+| Rows more than 5 standard deviations from the full-sample mean removed, including on the target | Look-ahead bias, and the largest moves (hardest to forecast) excluded | No trimming |
+| Forecasts evaluated every fifth month; Elastic Net errors silently set to zero | Small, irregular test sample | Every month; failures raise errors |
+| K-fold cross-validation for the Elastic Net | Folds trained on future data | Time-series cross-validation |
+| No significance test | Positive R² could not be separated from luck | Clark-West and Pesaran-Timmermann tests |
+
+# Conclusion
+
+The random walk remains hard to beat. For daily USD/JPY a GARCH model adds nothing to the forecast of the return but forecasts its volatility well. For monthly returns of six major currencies, machine-learning models built on macro fundamentals and global risk lose to the random walk on average, because the signal is too weak to pay for the variance of the forecasts in calm periods. In high-risk months, though, the neural network's forecasts are significantly better than the random walk, which supports the idea that fundamentals matter for exchange rates mainly when global risk is elevated.
+
+Two practical implications follow. A forecaster should shrink currency forecasts strongly toward zero, as the Elastic Net does on its own, and should switch fundamentals-based signals on only in high-risk regimes. And claims of beating the random walk need to be checked for look-ahead and data errors before they are believed: the earlier version of this project is a case in point.
+
+**Limitations.** The panel is small for a neural network (`{python} f"{len(panel):,}"` currency-months), FRED's OECD series end early for Japanese inflation and euro-area unemployment, and the strategy results ignore transaction costs. The study uses revised rather than vintage macro data, which slightly favours the fundamentals.
+
+# References {.unnumbered}
+
+Baker, S., Bloom, N. and Davis, S. (2016). Measuring economic policy uncertainty. *Quarterly Journal of Economics* 131(4).
+
+Caldara, D. and Iacoviello, M. (2022). Measuring geopolitical risk. *American Economic Review* 112(4).
+
+Campbell, J. and Thompson, S. (2008). Predicting excess stock returns out of sample. *Review of Financial Studies* 21(4).
+
+Clark, T. and West, K. (2007). Approximately normal tests for equal predictive accuracy in nested models. *Journal of Econometrics* 138(1).
+
+Diebold, F. and Mariano, R. (1995). Comparing predictive accuracy. *Journal of Business & Economic Statistics* 13(3).
+
+Filippou, I., Rapach, D., Taylor, M. and Zhou, G. (2020). Exchange rate prediction with machine learning and a smart carry portfolio. SSRN working paper 3455713.
+
+Meese, R. and Rogoff, K. (1983). Empirical exchange rate models of the seventies. *Journal of International Economics* 14(1–2).
+
+Pesaran, M. H. and Timmermann, A. (1992). A simple nonparametric test of predictive performance. *Journal of Business & Economic Statistics* 10(4).
+
+# Appendix: one step of backpropagation by hand {.unnumbered}
+
+The network in Part II learns by gradient descent. One step for a single hidden unit, with the chain rule written out:
+
+```{python}
+#| code-fold: false
+x, y = 2.5, -2.0  # input (e.g. a rate differential × VIX) and target return
+w1, b1, w2, b2, lr = 0.5, 0.1, -0.8, 0.0, 0.01
+
+z1 = w1 * x + b1  # forward pass
+a1 = max(0.0, z1)  # ReLU
+y_hat = w2 * a1 + b2
+loss = 0.5 * (y_hat - y) ** 2
+
+dL_dy = y_hat - y  # backward pass
+dL_dw2 = dL_dy * a1
+dL_dz1 = dL_dy * w2 * (1.0 if z1 > 0 else 0.0)
+dL_dw1 = dL_dz1 * x
+
+print(f"prediction {y_hat:.3f}, loss {loss:.4f}")
+print(f"dL/dw2 = {dL_dw2:.4f}, dL/dw1 = {dL_dw1:.4f}")
+print(f"updated w1 = {w1 - lr * dL_dw1:.4f}, w2 = {w2 - lr * dL_dw2:.4f}")
+```
+
+# Appendix: reproducing the results {.unnumbered}
+
+```bash
+pip install -r requirements.txt
+python download_data.py      # optional: refresh the FRED data
+python run_experiments.py    # about 1 minute for Part I and 20–30 minutes for Part II
+quarto render report.qmd
+```

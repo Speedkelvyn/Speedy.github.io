@@ -696,7 +696,7 @@
       /* projects */
       .projects {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 20px;
       }
       @media (max-width: 860px) {
@@ -1227,10 +1227,20 @@
               <span class="kind">Research</span>
               <h3>Financial contagion</h3>
               <p>
-                Investigated systemic risk transmission from bank failures to neighbouring institutions
+                Investigated systemic risk transmission from bank failures to neighbouring institutions,
                 applying financial data modelling across a multi-institution dataset.
               </p>
             </div>
+            <a class="project" href="projects/fx-forecasting/">
+              <span class="kind">Research · Python · PyTorch</span>
+              <h3>Exchange rate forecasting</h3>
+              <p>
+                Can machine learning beat the random walk? Elastic Net, a neural network and GARCH tested out
+                of sample on six currencies: no overall gain, but significant forecasting power in high-risk
+                months.
+              </p>
+              <span class="more">Read the study →</span>
+            </a>
             <a class="project" href="projects/inboxzero/">
               <span class="kind">Python · Gmail API</span>
               <h3>InboxZero</h3>

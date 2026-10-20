@@ -30,6 +30,10 @@ python -m pytest tests
 python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild a page after editing inputs
 ```
 
+## Research
+
+**[Can models beat the random walk in exchange rates?](https://speedkelvyn.github.io/Speedy.github.io/projects/fx-forecasting/)** Out-of-sample forecasts for daily USD/JPY (AR-GARCH) and a monthly panel of six currencies (Elastic Net, neural network, ensemble) with macro fundamentals and global risk. No model beats the random walk overall, but the neural network does in high-VIX months (Clark-West p = 0.04). Code and data in [`projects/fx-forecasting`](projects/fx-forecasting).
+
 ## Repository layout
 
 ```
@@ -40,6 +44,7 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 │   └── engine/              Python engine, CLI, Excel builder, data fetch, tests
 │       └── web/             Browser engine (model.js), page template and build_page.py
 ├── projects/
+│   ├── fx-forecasting/      Exchange-rate forecasting study: GARCH, Elastic Net, neural network
 │   └── inboxzero/           Gmail triage script, tests, setup guide and project page
 └── valuation-ledger/        Redirect to the Valuation Ledger course (repo: Valuation-gem)
 ```
