@@ -1,5 +1,7 @@
 # Kelvin Afful · Portfolio
 
+[![CI](https://github.com/Speedkelvyn/Speedy.github.io/actions/workflows/ci.yml/badge.svg)](https://github.com/Speedkelvyn/Speedy.github.io/actions/workflows/ci.yml)
+
 Equity valuation, credit risk and quantitative finance work by Kelvin Afful (MS Quantitative Finance & Economics, Texas State University).
 
 **Live site:** https://speedkelvyn.github.io/Speedy.github.io/
@@ -25,6 +27,7 @@ python run_valuation.py sndk --scenario Bull    # Sandisk, Bull case
 python run_valuation.py dell --excel dell.xlsx  # also write the live-formula Excel workbook
 python fetch_yahoo.py AAPL                      # build an inputs file for any ticker from Yahoo Finance
 python -m pytest tests
+python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild a page after editing inputs
 ```
 
 ## Repository layout
@@ -34,9 +37,10 @@ python -m pytest tests
 ├── valuations/
 │   ├── dell/                DELL model, Excel workbook, inputs, football field
 │   ├── sndk/                SNDK model, Excel workbook, notebook, inputs
-│   └── engine/              Python valuation engine, CLI, Excel builder, data fetch, tests
+│   └── engine/              Python engine, CLI, Excel builder, data fetch, tests
+│       └── web/             Browser engine (model.js), page template and build_page.py
 ├── projects/
-│   └── inboxzero/           Gmail triage script, setup guide and project page
+│   └── inboxzero/           Gmail triage script, tests, setup guide and project page
 └── valuation-ledger/        Redirect to the Valuation Ledger course (repo: Valuation-gem)
 ```
 
@@ -46,3 +50,14 @@ python -m pytest tests
 - [Bible365](https://github.com/Speedkelvyn/Bible365): Daily Bible-in-a-year reading tracker
 
 Valuations are for illustration only, not investment advice.
+
+## Development
+
+```bash
+pip install ruff pytest
+ruff check . && ruff format --check .   # lint and formatting
+pytest -q                               # tests
+npx html-validate@8.24.1 $(git ls-files '*.html')   # HTML validation
+```
+
+Style is set by `ruff.toml`, `.prettierrc.json`, `.htmlvalidate.json` and `.editorconfig`; GitHub Actions runs the same checks on every push.

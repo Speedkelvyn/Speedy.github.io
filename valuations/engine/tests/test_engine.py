@@ -1,5 +1,5 @@
 """The Python engine must reproduce the figures shown on the web pages."""
-import json
+
 import math
 import pathlib
 import sys
@@ -13,12 +13,26 @@ import valuation_v2 as v  # noqa: E402
 
 # Base-case figures published on the site (computed by the page's JavaScript engine)
 PAGE = {
-    "dell": dict(dcf=284.73015228872623, bear=145.5897076500473, bull=411.8835552760559,
-                 wacc=0.11581621085873567, ke=0.1214470451705196, comps=369.40631186509967,
-                 call="OVERVALUED", fair=311.65),
-    "sndk": dict(dcf=1476.017628458122, bear=627.4729269294703, bull=2367.264769152028,
-                 wacc=0.14584937103055423, ke=0.14593335919016975, comps=1153.3493304093302,
-                 call="FAIRLY VALUED", fair=1315.59),
+    "dell": {
+        "dcf": 284.73015228872623,
+        "bear": 145.5897076500473,
+        "bull": 411.8835552760559,
+        "wacc": 0.11581621085873567,
+        "ke": 0.1214470451705196,
+        "comps": 369.40631186509967,
+        "call": "OVERVALUED",
+        "fair": 311.65,
+    },
+    "sndk": {
+        "dcf": 1476.017628458122,
+        "bear": 627.4729269294703,
+        "bull": 2367.264769152028,
+        "wacc": 0.14584937103055423,
+        "ke": 0.14593335919016975,
+        "comps": 1153.3493304093302,
+        "call": "FAIRLY VALUED",
+        "fair": 1315.59,
+    },
 }
 
 

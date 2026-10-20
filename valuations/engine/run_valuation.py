@@ -13,6 +13,7 @@ DCF, WACC, comparables and regression match the web pages exactly. The Monte Car
 uses NumPy's random generator instead of the page's, so its median (and the blended
 fair value) can differ by a fraction of a percent.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -100,6 +101,7 @@ def main(argv=None) -> int:
     R = report(inp, a.scenario, a.mc)
     if a.excel and R["checks"]["ok"]:
         import excel_model
+
         excel_model.build_workbook(inp, a.excel, a.scenario)
         print(f"Workbook written to {a.excel}")
     return 0 if R["checks"]["ok"] else 2

@@ -1,423 +1,1306 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kelvin Afful | Quantitative Finance & Valuation</title>
-<meta name="description" content="Kelvin Afful — MSQFE, Texas State University. Equity valuation, credit risk and quantitative finance. Interactive DCF models for Dell Technologies and Sandisk.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230b2545%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27Arial%27 font-size=%2715%27 font-weight=%27700%27 text-anchor=%27middle%27 fill=%27%23fff%27%3EKA%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --navy: #0b2545; --navy-2: #13315c; --ink: #1b2430; --body: #3f4a5a; --muted: #6b7584;
-  --line: #e3e7ed; --bg: #ffffff; --bg-alt: #f5f7fa; --accent: #b08d3c;
-  --pos: #11804a; --neg: #b42318; --neu: #1d4ed8; --warn: #a15c07;
-  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --serif: "Source Serif 4", Georgia, serif;
-  color-scheme: light;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 72px; }
-body { background: var(--bg); color: var(--body); font: 16px/1.65 var(--sans); -webkit-font-smoothing: antialiased; }
-a { color: var(--navy-2); }
-.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-@media (max-width: 600px) { .container { padding: 0 16px; } }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-h1, h2, h3 { color: var(--ink); }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kelvin Afful | Quantitative Finance &amp; Valuation</title>
+    <meta
+      name="description"
+      content="Kelvin Afful — MSQFE, Texas State University. Equity valuation, credit risk and quantitative finance. Interactive DCF models for Dell Technologies and Sandisk."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230b2545%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27Arial%27 font-size=%2715%27 font-weight=%27700%27 text-anchor=%27middle%27 fill=%27%23fff%27%3EKA%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy: #0b2545;
+        --navy-2: #13315c;
+        --ink: #1b2430;
+        --body: #3f4a5a;
+        --muted: #6b7584;
+        --line: #e3e7ed;
+        --bg: #ffffff;
+        --bg-alt: #f5f7fa;
+        --accent: #b08d3c;
+        --pos: #11804a;
+        --neg: #b42318;
+        --neu: #1d4ed8;
+        --warn: #a15c07;
+        --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        --serif: "Source Serif 4", Georgia, serif;
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 72px;
+      }
+      body {
+        background: var(--bg);
+        color: var(--body);
+        font: 16px/1.65 var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: var(--navy-2);
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 0 16px;
+        }
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      h1,
+      h2,
+      h3 {
+        color: var(--ink);
+      }
 
-/* header */
-.site-header { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-.site-header .container { display: flex; align-items: center; height: 64px; gap: 24px; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 700; letter-spacing: -.01em; }
-.brand-mark { width: 32px; height: 32px; border-radius: 6px; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
-.site-nav { margin-left: auto; display: flex; gap: 28px; }
-.site-nav a { text-decoration: none; color: var(--body); font-size: 14px; font-weight: 500; }
-.site-nav a:hover { color: var(--navy); }
-.site-nav a.cta { color: #fff; background: var(--navy); padding: 8px 16px; border-radius: 6px; }
-.site-nav a.cta:hover { background: var(--navy-2); color: #fff; }
-@media (max-width: 760px) { .site-nav a:not(.cta) { display: none; } }
+      /* header */
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      .site-header .container {
+        display: flex;
+        align-items: center;
+        height: 64px;
+        gap: 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--ink);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .brand-mark {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: var(--navy);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .site-nav {
+        margin-left: auto;
+        display: flex;
+        gap: 28px;
+      }
+      .site-nav a {
+        text-decoration: none;
+        color: var(--body);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .site-nav a:hover {
+        color: var(--navy);
+      }
+      .site-nav a.cta {
+        color: #fff;
+        background: var(--navy);
+        padding: 8px 16px;
+        border-radius: 6px;
+      }
+      .site-nav a.cta:hover {
+        background: var(--navy-2);
+        color: #fff;
+      }
+      @media (max-width: 760px) {
+        .site-nav a:not(.cta) {
+          display: none;
+        }
+      }
 
-/* hero */
-.hero { background: linear-gradient(180deg, var(--bg-alt), #fff); border-bottom: 1px solid var(--line); padding: 80px 0 72px; }
-.hero .container { display: grid; grid-template-columns: 1.55fr 1fr; gap: 56px; align-items: center; }
-@media (max-width: 860px) { .hero .container { grid-template-columns: 1fr; gap: 36px; } .hero { padding: 56px 0; } }
-.overline { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-.hero h1 { font: 600 clamp(38px, 5.5vw, 56px)/1.08 var(--serif); letter-spacing: -.015em; margin: 14px 0 8px; }
-.hero .role { font-size: 19px; color: var(--navy-2); font-weight: 500; }
-.hero .intro { margin-top: 20px; font-size: 17px; max-width: 58ch; }
-.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
-.btn { display: inline-flex; align-items: center; gap: 8px; font: 600 14px var(--sans); text-decoration: none; padding: 11px 20px; border-radius: 6px; border: 1px solid var(--line); color: var(--ink); background: #fff; transition: background .15s, border-color .15s; }
-.btn:hover { border-color: var(--navy-2); }
-.btn-primary { background: var(--navy); color: #fff; border-color: var(--navy); }
-.btn-primary:hover { background: var(--navy-2); }
-.profile { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px; box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 12px 32px -12px rgba(16,24,40,.12); }
-.profile dl { display: grid; gap: 16px; }
-.profile dt { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.profile dd { color: var(--ink); font-weight: 500; margin-top: 2px; }
-.profile dd small { display: block; font-weight: 400; color: var(--muted); font-size: 14px; }
-.profile .contact { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
-.profile .contact a { text-decoration: none; font-weight: 500; }
-.profile .contact a:hover { text-decoration: underline; }
+      /* hero */
+      .hero {
+        background: linear-gradient(180deg, var(--bg-alt), #fff);
+        border-bottom: 1px solid var(--line);
+        padding: 80px 0 72px;
+      }
+      .hero .container {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 56px;
+        align-items: center;
+      }
+      @media (max-width: 860px) {
+        .hero .container {
+          grid-template-columns: 1fr;
+          gap: 36px;
+        }
+        .hero {
+          padding: 56px 0;
+        }
+      }
+      .overline {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .hero h1 {
+        font: 600 clamp(38px, 5.5vw, 56px) / 1.08 var(--serif);
+        letter-spacing: -0.015em;
+        margin: 14px 0 8px;
+      }
+      .hero .role {
+        font-size: 19px;
+        color: var(--navy-2);
+        font-weight: 500;
+      }
+      .hero .intro {
+        margin-top: 20px;
+        font-size: 17px;
+        max-width: 58ch;
+      }
+      .hero-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font: 600 14px var(--sans);
+        text-decoration: none;
+        padding: 11px 20px;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        background: #fff;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .btn:hover {
+        border-color: var(--navy-2);
+      }
+      .btn-primary {
+        background: var(--navy);
+        color: #fff;
+        border-color: var(--navy);
+      }
+      .btn-primary:hover {
+        background: var(--navy-2);
+      }
+      .profile {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow:
+          0 1px 2px rgba(16, 24, 40, 0.04),
+          0 12px 32px -12px rgba(16, 24, 40, 0.12);
+      }
+      .profile dl {
+        display: grid;
+        gap: 16px;
+      }
+      .profile dt {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .profile dd {
+        color: var(--ink);
+        font-weight: 500;
+        margin-top: 2px;
+      }
+      .profile dd small {
+        display: block;
+        font-weight: 400;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .profile .contact {
+        border-top: 1px solid var(--line);
+        margin-top: 20px;
+        padding-top: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .profile .contact a {
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .profile .contact a:hover {
+        text-decoration: underline;
+      }
 
-/* highlights */
-.highlights { border-bottom: 1px solid var(--line); }
-.highlights .container { display: grid; grid-template-columns: repeat(4, 1fr); }
-.highlights div { padding: 28px 20px; border-left: 1px solid var(--line); }
-.highlights div:first-child { border-left: 0; padding-left: 0; }
-.highlights strong { display: block; font: 600 32px var(--serif); color: var(--navy); }
-.highlights span { font-size: 14px; color: var(--muted); }
-@media (max-width: 760px) { .highlights .container { grid-template-columns: 1fr 1fr; } .highlights div { padding: 20px 14px; } .highlights div:nth-child(3) { border-left: 0; padding-left: 0; } .highlights div:nth-child(n+3) { border-top: 1px solid var(--line); } }
+      /* highlights */
+      .highlights {
+        border-bottom: 1px solid var(--line);
+      }
+      .highlights .container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .highlights div {
+        padding: 28px 20px;
+        border-left: 1px solid var(--line);
+      }
+      .highlights div:first-child {
+        border-left: 0;
+        padding-left: 0;
+      }
+      .highlights strong {
+        display: block;
+        font: 600 32px var(--serif);
+        color: var(--navy);
+      }
+      .highlights span {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      @media (max-width: 760px) {
+        .highlights .container {
+          grid-template-columns: 1fr 1fr;
+        }
+        .highlights div {
+          padding: 20px 14px;
+        }
+        .highlights div:nth-child(3) {
+          border-left: 0;
+          padding-left: 0;
+        }
+        .highlights div:nth-child(n + 3) {
+          border-top: 1px solid var(--line);
+        }
+      }
 
-/* sections */
-section { padding: 88px 0; }
-section.alt { background: var(--bg-alt); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.section-head { max-width: 680px; margin-bottom: 44px; }
-.section-head h2 { font: 600 clamp(28px, 4vw, 36px)/1.15 var(--serif); margin-top: 8px; }
-.section-head p { margin-top: 12px; }
-@media (max-width: 600px) { section { padding: 64px 0; } }
+      /* sections */
+      section {
+        padding: 88px 0;
+      }
+      section.alt {
+        background: var(--bg-alt);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .section-head {
+        max-width: 680px;
+        margin-bottom: 44px;
+      }
+      .section-head h2 {
+        font: 600 clamp(28px, 4vw, 36px) / 1.15 var(--serif);
+        margin-top: 8px;
+      }
+      .section-head p {
+        margin-top: 12px;
+      }
+      @media (max-width: 600px) {
+        section {
+          padding: 64px 0;
+        }
+      }
 
-/* valuation case studies */
-.cases { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 28px; }
-@media (max-width: 920px) { .cases { grid-template-columns: 1fr; } }
-.case { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
-@media (max-width: 600px) { .case { padding: 20px; } }
-.case-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
-.case-sector { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.case h3 { font: 600 23px/1.25 var(--serif); margin-top: 4px; }
-.case-date { font-size: 13px; color: var(--muted); }
-.case-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.tag { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
-.tag-neg { background: #fdecea; color: var(--neg); } .tag-pos { background: #e7f6ee; color: var(--pos); }
-.tag-neu { background: #e8efff; color: var(--neu); } .tag-warn { background: #fdf3e2; color: var(--warn); }
-.case-figs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.case-figs span { display: block; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
-.case-figs strong { font-size: clamp(19px, 2.6vw, 24px); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-.pos { color: var(--pos) !important; } .neg { color: var(--neg) !important; }
-.bar { position: relative; height: 52px; }
-.bar-track { position: absolute; left: 0; right: 0; top: 30px; height: 2px; background: var(--line); }
-.bar-scen { position: absolute; top: 24px; height: 14px; background: #dbe4f3; border-radius: 3px; }
-.bar-mc { position: absolute; top: 27px; height: 8px; background: var(--navy-2); border-radius: 3px; opacity: .8; }
-.bar-mark { position: absolute; top: 14px; height: 34px; width: 2px; transform: translateX(-1px); }
-.bar-mark span { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600; white-space: nowrap; }
-.bar-mark.fair { background: var(--ink); }
-.bar-mark.price { background: var(--accent); } .bar-mark.price span { top: 36px; color: var(--accent); }
-.bar-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--muted); margin-top: 10px; }
-.bar-key i { display: inline-block; width: 14px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-.k-scen { background: #dbe4f3; } .k-mc { background: var(--navy-2); opacity: .8; }
-.case-sum { font-size: 15px; }
-.case-table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
-.case-table th { text-align: left; font-weight: 500; color: var(--muted); padding: 8px 8px 8px 0; border-bottom: 1px solid var(--line); }
-.case-table td { text-align: right; font-weight: 600; color: var(--ink); padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.case-table td:last-child { padding-right: 0; }
-@media (max-width: 520px) { .case-table tr { display: grid; grid-template-columns: 1fr auto; } .case-table th, .case-table td { padding-right: 0; } }
-.case-method { font-size: 13px; color: var(--muted); }
-.case-links { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: auto; }
-.case-links .link { font-size: 14px; font-weight: 600; text-decoration: none; }
-.case-links .link:hover { text-decoration: underline; }
-.note { margin-top: 24px; font-size: 13px; color: var(--muted); }
+      /* valuation case studies */
+      .cases {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px;
+      }
+      @media (max-width: 920px) {
+        .cases {
+          grid-template-columns: 1fr;
+        }
+      }
+      .case {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+      }
+      @media (max-width: 600px) {
+        .case {
+          padding: 20px;
+        }
+      }
+      .case-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .case-sector {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .case h3 {
+        font: 600 23px/1.25 var(--serif);
+        margin-top: 4px;
+      }
+      .case-date {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .case-tags {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+      }
+      .tag {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .tag-neg {
+        background: #fdecea;
+        color: var(--neg);
+      }
+      .tag-pos {
+        background: #e7f6ee;
+        color: var(--pos);
+      }
+      .tag-neu {
+        background: #e8efff;
+        color: var(--neu);
+      }
+      .tag-warn {
+        background: #fdf3e2;
+        color: var(--warn);
+      }
+      .case-figs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 16px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .case-figs span {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .case-figs strong {
+        font-size: clamp(19px, 2.6vw, 24px);
+        font-weight: 700;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+      }
+      .pos {
+        color: var(--pos) !important;
+      }
+      .neg {
+        color: var(--neg) !important;
+      }
+      .bar {
+        position: relative;
+        height: 52px;
+      }
+      .bar-track {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 30px;
+        height: 2px;
+        background: var(--line);
+      }
+      .bar-scen {
+        position: absolute;
+        top: 24px;
+        height: 14px;
+        background: #dbe4f3;
+        border-radius: 3px;
+      }
+      .bar-mc {
+        position: absolute;
+        top: 27px;
+        height: 8px;
+        background: var(--navy-2);
+        border-radius: 3px;
+        opacity: 0.8;
+      }
+      .bar-mark {
+        position: absolute;
+        top: 14px;
+        height: 34px;
+        width: 2px;
+        transform: translateX(-1px);
+      }
+      .bar-mark span {
+        position: absolute;
+        top: -16px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .bar-mark.fair {
+        background: var(--ink);
+      }
+      .bar-mark.price {
+        background: var(--accent);
+      }
+      .bar-mark.price span {
+        top: 36px;
+        color: var(--accent);
+      }
+      .bar-key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      .bar-key i {
+        display: inline-block;
+        width: 14px;
+        height: 8px;
+        border-radius: 2px;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+      .k-scen {
+        background: #dbe4f3;
+      }
+      .k-mc {
+        background: var(--navy-2);
+        opacity: 0.8;
+      }
+      .case-sum {
+        font-size: 15px;
+      }
+      .case-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+      .case-table th {
+        text-align: left;
+        font-weight: 500;
+        color: var(--muted);
+        padding: 8px 8px 8px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .case-table td {
+        text-align: right;
+        font-weight: 600;
+        color: var(--ink);
+        padding: 8px 16px 8px 0;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+      }
+      .case-table td:last-child {
+        padding-right: 0;
+      }
+      @media (max-width: 520px) {
+        .case-table tr {
+          display: grid;
+          grid-template-columns: 1fr auto;
+        }
+        .case-table th,
+        .case-table td {
+          padding-right: 0;
+        }
+      }
+      .case-method {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .case-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 18px;
+        margin-top: auto;
+      }
+      .case-links .link {
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .case-links .link:hover {
+        text-decoration: underline;
+      }
+      .note {
+        margin-top: 24px;
+        font-size: 13px;
+        color: var(--muted);
+      }
 
-/* method */
-.method { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: s; }
-@media (max-width: 860px) { .method { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 560px) { .method { grid-template-columns: 1fr; } }
-.method li { list-style: none; counter-increment: s; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 22px; }
-.method li::before { content: counter(s); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
-.method h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-.method p { font-size: 14px; }
+      /* method */
+      .method {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        counter-reset: s;
+      }
+      @media (max-width: 860px) {
+        .method {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 560px) {
+        .method {
+          grid-template-columns: 1fr;
+        }
+      }
+      .method li {
+        list-style: none;
+        counter-increment: s;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 22px;
+      }
+      .method li::before {
+        content: counter(s);
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--navy);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .method h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .method p {
+        font-size: 14px;
+      }
 
-/* experience */
-.job { display: grid; grid-template-columns: 200px 1fr; gap: 32px; padding: 28px 0; border-top: 1px solid var(--line); }
-.job:last-child { border-bottom: 1px solid var(--line); }
-.job-when { font-size: 14px; font-weight: 600; color: var(--muted); }
-.job h3 { font-size: 19px; font-weight: 600; }
-.job-org { color: var(--navy-2); font-weight: 500; font-size: 15px; }
-.job ul { margin-top: 10px; padding-left: 18px; }
-.job li { margin-top: 4px; }
-@media (max-width: 680px) { .job { grid-template-columns: 1fr; gap: 6px; } }
-.edu { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
-@media (max-width: 680px) { .edu { grid-template-columns: 1fr; } }
-.edu div { border: 1px solid var(--line); border-radius: 10px; padding: 22px; background: #fff; }
-.edu h3 { font-size: 17px; font-weight: 600; }
-.edu p { font-size: 14px; }
-.edu .when { color: var(--muted); font-size: 13px; font-weight: 600; }
+      /* experience */
+      .job {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 32px;
+        padding: 28px 0;
+        border-top: 1px solid var(--line);
+      }
+      .job:last-child {
+        border-bottom: 1px solid var(--line);
+      }
+      .job-when {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .job h3 {
+        font-size: 19px;
+        font-weight: 600;
+      }
+      .job-org {
+        color: var(--navy-2);
+        font-weight: 500;
+        font-size: 15px;
+      }
+      .job ul {
+        margin-top: 10px;
+        padding-left: 18px;
+      }
+      .job li {
+        margin-top: 4px;
+      }
+      @media (max-width: 680px) {
+        .job {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+      }
+      .edu {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 40px;
+      }
+      @media (max-width: 680px) {
+        .edu {
+          grid-template-columns: 1fr;
+        }
+      }
+      .edu div {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 22px;
+        background: #fff;
+      }
+      .edu h3 {
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .edu p {
+        font-size: 14px;
+      }
+      .edu .when {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
 
-/* projects */
-.projects { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-@media (max-width: 860px) { .projects { grid-template-columns: 1fr; } }
-.project { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 24px; text-decoration: none; color: inherit; transition: border-color .15s, box-shadow .15s; }
-a.project:hover { border-color: var(--navy-2); box-shadow: 0 8px 24px -12px rgba(16,24,40,.2); }
-.project .kind { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
-.project h3 { font-size: 18px; font-weight: 600; margin: 8px 0 6px; }
-.project p { font-size: 14px; flex: 1; }
-.project .more { margin-top: 16px; font-size: 14px; font-weight: 600; color: var(--navy-2); }
+      /* projects */
+      .projects {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      @media (max-width: 860px) {
+        .projects {
+          grid-template-columns: 1fr;
+        }
+      }
+      .project {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 24px;
+        text-decoration: none;
+        color: inherit;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      a.project:hover {
+        border-color: var(--navy-2);
+        box-shadow: 0 8px 24px -12px rgba(16, 24, 40, 0.2);
+      }
+      .project .kind {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .project h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 8px 0 6px;
+      }
+      .project p {
+        font-size: 14px;
+        flex: 1;
+      }
+      .project .more {
+        margin-top: 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--navy-2);
+      }
 
-/* skills */
-.skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-@media (max-width: 760px) { .skills { grid-template-columns: 1fr; } }
-.skills h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips span { font-size: 13px; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; color: var(--ink); }
+      /* skills */
+      .skills {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+      }
+      @media (max-width: 760px) {
+        .skills {
+          grid-template-columns: 1fr;
+        }
+      }
+      .skills h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chips span {
+        font-size: 13px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 5px 10px;
+        color: var(--ink);
+      }
 
-/* contact */
-.contact-band { background: var(--navy); color: #dbe4f3; padding: 72px 0; }
-.contact-band .container { display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap; }
-.contact-band h2 { color: #fff; font: 600 clamp(26px, 3.6vw, 34px)/1.2 var(--serif); }
-.contact-band p { margin-top: 8px; max-width: 52ch; }
-.contact-band .btn { background: #fff; color: var(--navy); border-color: #fff; }
-.contact-band .btn.ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
-.contact-band .btn.ghost:hover { border-color: #fff; }
-footer { padding: 28px 0; font-size: 13px; color: var(--muted); }
-footer .container { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-footer a { color: var(--muted); }
-</style>
-</head>
-<body>
-<header class="site-header">
-  <div class="container">
-    <a class="brand" href="#top"><span class="brand-mark">KA</span>Kelvin Afful</a>
-    <nav class="site-nav" aria-label="Primary">
-      <a href="#valuations">Valuations</a>
-      <a href="#experience">Experience</a>
-      <a href="#projects">Projects</a>
-      <a href="#skills">Skills</a>
-      <a class="cta" href="#contact">Contact</a>
-    </nav>
-  </div>
-</header>
-
-<main id="top">
-  <section class="hero">
-    <div class="container">
-      <div>
-        <p class="overline">Quantitative Finance · Credit Risk · Valuation</p>
-        <h1>Kelvin Afful</h1>
-        <p class="role">Financial analyst in equity valuation and credit risk</p>
-        <p class="intro">Combines frontline credit experience with graduate training in quantitative finance to build valuation and risk models that show their working: sourced inputs, regression-based discount rates and built-in earnings-quality checks, delivered in Excel, Python and interactive web tools.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="#valuations">View valuation work</a>
-          <a class="btn" href="https://www.linkedin.com/in/kelvin-afful-172b29154" target="_blank" rel="noopener">LinkedIn ↗</a>
-        </div>
+      /* contact */
+      .contact-band {
+        background: var(--navy);
+        color: #dbe4f3;
+        padding: 72px 0;
+      }
+      .contact-band .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 32px;
+        flex-wrap: wrap;
+      }
+      .contact-band h2 {
+        color: #fff;
+        font: 600 clamp(26px, 3.6vw, 34px) / 1.2 var(--serif);
+      }
+      .contact-band p {
+        margin-top: 8px;
+        max-width: 52ch;
+      }
+      .contact-band .btn {
+        background: #fff;
+        color: var(--navy);
+        border-color: #fff;
+      }
+      .contact-band .btn.ghost {
+        background: transparent;
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+      .contact-band .btn.ghost:hover {
+        border-color: #fff;
+      }
+      footer {
+        padding: 28px 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      footer .container {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      footer a {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="#top"><span class="brand-mark">KA</span>Kelvin Afful</a>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="#valuations">Valuations</a>
+          <a href="#experience">Experience</a>
+          <a href="#projects">Projects</a>
+          <a href="#skills">Skills</a>
+          <a class="cta" href="#contact">Contact</a>
+        </nav>
       </div>
-      <aside class="profile" aria-label="Profile summary">
-        <dl>
-          <div><dt>Education</dt><dd>MS Quantitative Finance &amp; Economics<small>Texas State University · GPA 3.90 · May 2026</small></dd></div>
-          <div><dt>Background</dt><dd>Credit Officer, rural banking<small>Loan appraisal, portfolio monitoring, credit reporting</small></dd></div>
-          <div><dt>Research</dt><dd>Credit risk &amp; financial contagion<small>Machine learning applications in finance</small></dd></div>
-        </dl>
-        <div class="contact">
-          <a href="mailto:affulk22@gmail.com">affulk22@gmail.com</a>
-          <a href="https://www.linkedin.com/in/kelvin-afful-172b29154" target="_blank" rel="noopener">linkedin.com/in/kelvin-afful-172b29154</a>
-          <a href="https://github.com/Speedkelvyn" target="_blank" rel="noopener">github.com/Speedkelvyn</a>
-        </div>
-      </aside>
-    </div>
-  </section>
+    </header>
 
-  <div class="highlights" aria-label="Highlights">
-    <div class="container">
-      <div><strong>490+</strong><span>Accounts managed in research reporting</span></div>
-      <div><strong>15+</strong><span>Loan applications appraised weekly</span></div>
-      <div><strong>200+</strong><span>Undergraduates taught economics</span></div>
-      <div><strong>2</strong><span>Published equity valuations</span></div>
-    </div>
-  </div>
-
-  <section id="valuations">
-    <div class="container">
-      <div class="section-head">
-        <p class="overline">Valuation work</p>
-        <h2>Equity valuations</h2>
-        <p>Base-case results from a single valuation engine that runs identically in Excel, Python and the browser. Each interactive model lets you switch Bear, Base and Bull cases and edit any input; the same engine runs in Python from the command line.</p>
-      </div>
-      <div class="cases">
-      <article class="case" id="dell">
-        <div class="case-top">
+    <main id="top">
+      <section class="hero">
+        <div class="container">
           <div>
-            <p class="case-sector">Technology hardware · NYSE: DELL</p>
-            <h3>Dell Technologies Inc.</h3>
-            <p class="case-date">Valued 2026-10-16</p>
+            <p class="overline">Quantitative Finance · Credit Risk · Valuation</p>
+            <h1>Kelvin Afful</h1>
+            <p class="role">Financial analyst in equity valuation and credit risk</p>
+            <p class="intro">
+              Combines frontline credit experience with graduate training in quantitative finance to build
+              valuation and risk models that show their working: sourced inputs, regression-based discount
+              rates and built-in earnings-quality checks, delivered in Excel, Python and interactive web
+              tools.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#valuations">View valuation work</a>
+              <a
+                class="btn"
+                href="https://www.linkedin.com/in/kelvin-afful-172b29154"
+                target="_blank"
+                rel="noopener"
+                >LinkedIn ↗</a
+              >
+            </div>
           </div>
-          <div class="case-tags"><span class="tag tag-neg">Overvalued</span></div>
+          <aside class="profile" aria-label="Profile summary">
+            <dl>
+              <div>
+                <dt>Education</dt>
+                <dd>
+                  MS Quantitative Finance &amp; Economics<small
+                    >Texas State University · GPA 3.90 · May 2026</small
+                  >
+                </dd>
+              </div>
+              <div>
+                <dt>Background</dt>
+                <dd>
+                  Credit Officer, rural banking<small
+                    >Loan appraisal, portfolio monitoring, credit reporting</small
+                  >
+                </dd>
+              </div>
+              <div>
+                <dt>Research</dt>
+                <dd>
+                  Credit risk &amp; financial contagion<small>Machine learning applications in finance</small>
+                </dd>
+              </div>
+            </dl>
+            <div class="contact">
+              <a href="mailto:affulk22@gmail.com">affulk22@gmail.com</a>
+              <a href="https://www.linkedin.com/in/kelvin-afful-172b29154" target="_blank" rel="noopener"
+                >linkedin.com/in/kelvin-afful-172b29154</a
+              >
+              <a href="https://github.com/Speedkelvyn" target="_blank" rel="noopener"
+                >github.com/Speedkelvyn</a
+              >
+            </div>
+          </aside>
         </div>
-        <div class="case-figs">
-          <div><span>Fair value</span><strong>$311.65</strong></div>
-          <div><span>Price</span><strong>$473.39</strong></div>
-          <div><span>Upside</span><strong class="neg">−34.2%</strong></div>
+      </section>
+
+      <div class="highlights" role="region" aria-label="Highlights">
+        <div class="container">
+          <div><strong>490+</strong><span>Accounts managed in research reporting</span></div>
+          <div><strong>15+</strong><span>Loan applications appraised weekly</span></div>
+          <div><strong>200+</strong><span>Undergraduates taught economics</span></div>
+          <div><strong>2</strong><span>Published equity valuations</span></div>
         </div>
-        <div class="bar" role="img" aria-label="Bear $145.59 to Bull $411.88; Monte Carlo 10th–90th percentile $222.12–$340.60; fair value $311.65; price $473.39">
-          <div class="bar-track"></div>
-          <div class="bar-scen" style="left:3.21%;width:73.34%"></div>
-          <div class="bar-mc" style="left:24.28%;width:32.63%"></div>
-          <div class="bar-mark fair" style="left:48.94%"><span>Fair value</span></div>
-          <div class="bar-mark price" style="left:93.48%"><span>Price</span></div>
-        </div>
-        <div class="bar-key"><span><i class="k-scen"></i>Bear–Bull $145.59 – $411.88</span><span><i class="k-mc"></i>Monte Carlo p10–p90</span></div>
-        <p class="case-sum">Market price sits above every intrinsic estimate, including the Bull case. A daily-return beta of 1.99 (Blume-adjusted to 1.67) lifts the cost of equity to 12.1%, and roughly half of the price reflects growth not yet earned.</p>
-        <table class="case-table">
-          <tr><th>WACC</th><td>11.58%</td><th>Cost of equity</th><td>12.14%</td></tr>
-          <tr><th>Beta (used / daily)</th><td>1.67 / 1.99</td><th>Expected alpha</th><td class="neg">−45.8%</td></tr>
-          <tr><th>P(value &gt; price)</th><td>&lt; 0.1%</td><th>Earnings quality</th><td>Grade B</td></tr>
-          <tr><th>Comparables</th><td>$369.41</td><th>Peer regression</th><td>—</td></tr>
-        </table>
-        <p class="case-method">Hand-built FCFF model with segment revenue, captive-finance (DFS) bridge and Compustat history</p>
-        <div class="case-links"><a class="btn btn-primary" href="valuations/dell/">View interactive model</a><a class="link" href="valuations/dell/DELL_valuation.xlsx">Excel workbook</a><a class="link" href="valuations/dell/DELL_football_field.png">Football field</a><a class="link" href="valuations/dell/dell_inputs.json">Inputs</a><a class="link" href="https://github.com/Speedkelvyn/Speedy.github.io/tree/main/valuations/engine" target=_blank rel=noopener>Python engine ↗</a></div>
-      </article>
-      <article class="case" id="sndk">
-        <div class="case-top">
-          <div>
-            <p class="case-sector">Memory & storage · NasdaqGS: SNDK</p>
-            <h3>Sandisk Corporation</h3>
-            <p class="case-date">Valued 2026-10-20</p>
+      </div>
+
+      <section id="valuations">
+        <div class="container">
+          <div class="section-head">
+            <p class="overline">Valuation work</p>
+            <h2>Equity valuations</h2>
+            <p>
+              Base-case results from a single valuation engine that runs identically in Excel, Python and the
+              browser. Each interactive model lets you switch Bear, Base and Bull cases and edit any input;
+              the same engine runs in Python from the command line.
+            </p>
           </div>
-          <div class="case-tags"><span class="tag tag-neu">Fairly Valued</span><span class="tag tag-warn">Low confidence</span></div>
+          <div class="cases">
+            <article class="case" id="dell">
+              <div class="case-top">
+                <div>
+                  <p class="case-sector">Technology hardware · NYSE: DELL</p>
+                  <h3>Dell Technologies Inc.</h3>
+                  <p class="case-date">Valued 2026-10-16</p>
+                </div>
+                <div class="case-tags"><span class="tag tag-neg">Overvalued</span></div>
+              </div>
+              <div class="case-figs">
+                <div><span>Fair value</span><strong>$311.65</strong></div>
+                <div><span>Price</span><strong>$473.39</strong></div>
+                <div><span>Upside</span><strong class="neg">−34.2%</strong></div>
+              </div>
+              <div
+                class="bar"
+                role="img"
+                aria-label="Bear $145.59 to Bull $411.88; Monte Carlo 10th–90th percentile $222.12–$340.60; fair value $311.65; price $473.39"
+              >
+                <div class="bar-track"></div>
+                <div class="bar-scen" style="left: 3.21%; width: 73.34%"></div>
+                <div class="bar-mc" style="left: 24.28%; width: 32.63%"></div>
+                <div class="bar-mark fair" style="left: 48.94%"><span>Fair value</span></div>
+                <div class="bar-mark price" style="left: 93.48%"><span>Price</span></div>
+              </div>
+              <div class="bar-key">
+                <span><i class="k-scen"></i>Bear–Bull $145.59 – $411.88</span
+                ><span><i class="k-mc"></i>Monte Carlo p10–p90</span>
+              </div>
+              <p class="case-sum">
+                Market price sits above every intrinsic estimate, including the Bull case. A daily-return beta
+                of 1.99 (Blume-adjusted to 1.67) lifts the cost of equity to 12.1%, and roughly half of the
+                price reflects growth not yet earned.
+              </p>
+              <table class="case-table">
+                <tbody>
+                  <tr>
+                    <th scope="row">WACC</th>
+                    <td>11.58%</td>
+                    <th scope="row">Cost of equity</th>
+                    <td>12.14%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Beta (used / daily)</th>
+                    <td>1.67 / 1.99</td>
+                    <th scope="row">Expected alpha</th>
+                    <td class="neg">−45.8%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">P(value &gt; price)</th>
+                    <td>&lt; 0.1%</td>
+                    <th scope="row">Earnings quality</th>
+                    <td>Grade B</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Comparables</th>
+                    <td>$369.41</td>
+                    <th scope="row">Peer regression</th>
+                    <td>—</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="case-method">
+                Hand-built FCFF model with segment revenue, captive-finance (DFS) bridge and Compustat history
+              </p>
+              <div class="case-links">
+                <a class="btn btn-primary" href="valuations/dell/">View interactive model</a
+                ><a class="link" href="valuations/dell/DELL_valuation.xlsx">Excel workbook</a
+                ><a class="link" href="valuations/dell/DELL_football_field.png">Football field</a
+                ><a class="link" href="valuations/dell/dell_inputs.json">Inputs</a
+                ><a
+                  class="link"
+                  href="https://github.com/Speedkelvyn/Speedy.github.io/tree/main/valuations/engine"
+                  target="_blank"
+                  rel="noopener"
+                  >Python engine ↗</a
+                >
+              </div>
+            </article>
+            <article class="case" id="sndk">
+              <div class="case-top">
+                <div>
+                  <p class="case-sector">Memory &amp; storage · NasdaqGS: SNDK</p>
+                  <h3>Sandisk Corporation</h3>
+                  <p class="case-date">Valued 2026-10-20</p>
+                </div>
+                <div class="case-tags">
+                  <span class="tag tag-neu">Fairly Valued</span
+                  ><span class="tag tag-warn">Low confidence</span>
+                </div>
+              </div>
+              <div class="case-figs">
+                <div><span>Fair value</span><strong>$1,315.59</strong></div>
+                <div><span>Price</span><strong>$1,365.38</strong></div>
+                <div><span>Upside</span><strong class="neg">−3.6%</strong></div>
+              </div>
+              <div
+                class="bar"
+                role="img"
+                aria-label="Bear $627.47 to Bull $2,367.26; Monte Carlo 10th–90th percentile $1,251.82–$1,688.39; fair value $1,315.59; price $1,365.38"
+              >
+                <div class="bar-track"></div>
+                <div class="bar-scen" style="left: 2.63%; width: 91.17%"></div>
+                <div class="bar-mc" style="left: 35.35%; width: 22.88%"></div>
+                <div class="bar-mark fair" style="left: 38.69%"><span>Fair value</span></div>
+                <div class="bar-mark price" style="left: 41.3%"><span>Price</span></div>
+              </div>
+              <div class="bar-key">
+                <span><i class="k-scen"></i>Bear–Bull $627.47 – $2,367.26</span
+                ><span><i class="k-mc"></i>Monte Carlo p10–p90</span>
+              </div>
+              <p class="case-sum">
+                Price falls inside the ±10% fair-value band, and the Monte Carlo puts a 70% probability on
+                value exceeding price. Confidence is flagged low: the Beneish M-score of −0.71 sits in the
+                manipulation zone, and NAND margin swings widen the Bull–Bear spread.
+              </p>
+              <table class="case-table">
+                <tbody>
+                  <tr>
+                    <th scope="row">WACC</th>
+                    <td>14.58%</td>
+                    <th scope="row">Cost of equity</th>
+                    <td>14.59%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Beta (used / daily)</th>
+                    <td>2.24 / 2.85</td>
+                    <th scope="row">Expected alpha</th>
+                    <td class="neg">−18.2%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">P(value &gt; price)</th>
+                    <td>70.1%</td>
+                    <th scope="row">Earnings quality</th>
+                    <td>Grade C</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Comparables</th>
+                    <td>$1,153.35</td>
+                    <th scope="row">Peer regression</th>
+                    <td>$883.02</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="case-method">
+                Live-researched FCFF model; every input tagged as sourced, derived or assumption
+              </p>
+              <div class="case-links">
+                <a class="btn btn-primary" href="valuations/sndk/">View interactive model</a
+                ><a class="link" href="valuations/sndk/SNDK_valuation.xlsx">Excel workbook</a
+                ><a
+                  class="link"
+                  href="https://github.com/Speedkelvyn/Speedy.github.io/blob/main/valuations/sndk/SNDK_valuation.ipynb"
+                  target="_blank"
+                  rel="noopener"
+                  >Notebook ↗</a
+                ><a class="link" href="valuations/sndk/SNDK_inputs.json">Inputs</a
+                ><a
+                  class="link"
+                  href="https://github.com/Speedkelvyn/Speedy.github.io/tree/main/valuations/engine"
+                  target="_blank"
+                  rel="noopener"
+                  >Python engine ↗</a
+                >
+              </div>
+            </article>
+          </div>
+          <p class="note">
+            Fair value blends the DCF, Monte Carlo median, comparables and peer regression; calls use a ±10%
+            band around price. Prices as of the dates shown. For illustration only, not investment advice.
+          </p>
         </div>
-        <div class="case-figs">
-          <div><span>Fair value</span><strong>$1,315.59</strong></div>
-          <div><span>Price</span><strong>$1,365.38</strong></div>
-          <div><span>Upside</span><strong class="neg">−3.6%</strong></div>
-        </div>
-        <div class="bar" role="img" aria-label="Bear $627.47 to Bull $2,367.26; Monte Carlo 10th–90th percentile $1,251.82–$1,688.39; fair value $1,315.59; price $1,365.38">
-          <div class="bar-track"></div>
-          <div class="bar-scen" style="left:2.63%;width:91.17%"></div>
-          <div class="bar-mc" style="left:35.35%;width:22.88%"></div>
-          <div class="bar-mark fair" style="left:38.69%"><span>Fair value</span></div>
-          <div class="bar-mark price" style="left:41.30%"><span>Price</span></div>
-        </div>
-        <div class="bar-key"><span><i class="k-scen"></i>Bear–Bull $627.47 – $2,367.26</span><span><i class="k-mc"></i>Monte Carlo p10–p90</span></div>
-        <p class="case-sum">Price falls inside the ±10% fair-value band, and the Monte Carlo puts a 70% probability on value exceeding price. Confidence is flagged low: the Beneish M-score of −0.71 sits in the manipulation zone, and NAND margin swings widen the Bull–Bear spread.</p>
-        <table class="case-table">
-          <tr><th>WACC</th><td>14.58%</td><th>Cost of equity</th><td>14.59%</td></tr>
-          <tr><th>Beta (used / daily)</th><td>2.24 / 2.85</td><th>Expected alpha</th><td class="neg">−18.2%</td></tr>
-          <tr><th>P(value &gt; price)</th><td>70.1%</td><th>Earnings quality</th><td>Grade C</td></tr>
-          <tr><th>Comparables</th><td>$1,153.35</td><th>Peer regression</th><td>$883.02</td></tr>
-        </table>
-        <p class="case-method">Live-researched FCFF model; every input tagged as sourced, derived or assumption</p>
-        <div class="case-links"><a class="btn btn-primary" href="valuations/sndk/">View interactive model</a><a class="link" href="valuations/sndk/SNDK_valuation.xlsx">Excel workbook</a><a class="link" href="https://github.com/Speedkelvyn/Speedy.github.io/blob/main/valuations/sndk/SNDK_valuation.ipynb" target=_blank rel=noopener>Notebook ↗</a><a class="link" href="valuations/sndk/SNDK_inputs.json">Inputs</a><a class="link" href="https://github.com/Speedkelvyn/Speedy.github.io/tree/main/valuations/engine" target=_blank rel=noopener>Python engine ↗</a></div>
-      </article>
-      </div>
-      <p class="note">Fair value blends the DCF, Monte Carlo median, comparables and peer regression; calls use a ±10% band around price. Prices as of the dates shown. For illustration only, not investment advice.</p>
-    </div>
-  </section>
+      </section>
 
-  <section class="alt" id="method">
-    <div class="container">
-      <div class="section-head">
-        <p class="overline">Approach</p>
-        <h2>A six-step valuation framework</h2>
-        <p>Missing debt, cash or yield data stops the model instead of defaulting to zero, so every published number traces back to a source.</p>
-      </div>
-      <ol class="method">
-        <li><h3>History &amp; earnings quality</h3><p>Five years of statements screened with the Beneish M-score, Sloan accruals and cash conversion.</p></li>
-        <li><h3>Future cash flows</h3><p>FCFF for operating companies, excess returns for banks and insurers, dividends for REITs.</p></li>
-        <li><h3>Discount rate</h3><p>CAPM cost of equity with beta regressed on two years of daily returns, blended into WACC.</p></li>
-        <li><h3>Discount</h3><p>Ten-year explicit forecast plus terminal value, cross-checked against an exit multiple.</p></li>
-        <li><h3>Price</h3><p>Enterprise value bridged to equity value and divided by diluted shares.</p></li>
-        <li><h3>Verdict</h3><p>DCF, Monte Carlo, comparables and regression blended into a call and expected alpha.</p></li>
-      </ol>
-    </div>
-  </section>
+      <section class="alt" id="method">
+        <div class="container">
+          <div class="section-head">
+            <p class="overline">Approach</p>
+            <h2>A six-step valuation framework</h2>
+            <p>
+              Missing debt, cash or yield data stops the model instead of defaulting to zero, so every
+              published number traces back to a source.
+            </p>
+          </div>
+          <ol class="method">
+            <li>
+              <h3>History &amp; earnings quality</h3>
+              <p>
+                Five years of statements screened with the Beneish M-score, Sloan accruals and cash
+                conversion.
+              </p>
+            </li>
+            <li>
+              <h3>Future cash flows</h3>
+              <p>FCFF for operating companies, excess returns for banks and insurers, dividends for REITs.</p>
+            </li>
+            <li>
+              <h3>Discount rate</h3>
+              <p>CAPM cost of equity with beta regressed on two years of daily returns, blended into WACC.</p>
+            </li>
+            <li>
+              <h3>Discount</h3>
+              <p>Ten-year explicit forecast plus terminal value, cross-checked against an exit multiple.</p>
+            </li>
+            <li>
+              <h3>Price</h3>
+              <p>Enterprise value bridged to equity value and divided by diluted shares.</p>
+            </li>
+            <li>
+              <h3>Verdict</h3>
+              <p>DCF, Monte Carlo, comparables and regression blended into a call and expected alpha.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
 
-  <section id="experience">
-    <div class="container">
-      <div class="section-head">
-        <p class="overline">Experience</p>
-        <h2>Professional experience</h2>
-      </div>
-      
-        <div class="job">
-          <div class="job-when">Aug 2024 – May 2026</div>
-          <div>
-            <h3>Graduate Research Assistant</h3>
-            <p class="job-org">Texas State University · San Marcos, TX</p>
-            <ul><li>Managed project performance data and recurring financial reporting across 490+ accounts.</li><li>Co-led analytical research for a forthcoming McGraw-Hill economics publication.</li><li>Taught quantitative micro- and macroeconomics to 200+ undergraduates.</li></ul>
+      <section id="experience">
+        <div class="container">
+          <div class="section-head">
+            <p class="overline">Experience</p>
+            <h2>Professional experience</h2>
+          </div>
+
+          <div class="job">
+            <div class="job-when">Aug 2024 – May 2026</div>
+            <div>
+              <h3>Graduate Research Assistant</h3>
+              <p class="job-org">Texas State University · San Marcos, TX</p>
+              <ul>
+                <li>
+                  Managed project performance data and recurring financial reporting across 490+ accounts.
+                </li>
+                <li>Co-led analytical research for a forthcoming McGraw-Hill economics publication.</li>
+                <li>Taught quantitative micro- and macroeconomics to 200+ undergraduates.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="job">
+            <div class="job-when">Jan 2023 – Aug 2024</div>
+            <div>
+              <h3>Credit Officer</h3>
+              <p class="job-org">Lower Pra Rural Bank PLC · Takoradi, Ghana</p>
+              <ul>
+                <li>
+                  Evaluated 15+ loan applications weekly on repayment capacity, collateral and risk exposure.
+                </li>
+                <li>Prepared credit reports that supported timely, well-documented lending decisions.</li>
+                <li>
+                  Monitored the active loan portfolio for policy compliance and early-stage risk indicators.
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="job">
+            <div class="job-when">Nov 2020 – Dec 2022</div>
+            <div>
+              <h3>Data Officer</h3>
+              <p class="job-org">Social Security and National Insurance Trust (SSNIT) · Ghana</p>
+              <ul>
+                <li>Reconciled 500+ employee pension contributions monthly with high-volume accuracy.</li>
+                <li>Registered ~160 clients a month and ran SAS-based data review.</li>
+                <li>Co-organised outreach clinics that educated 800+ people on pension products.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="edu">
+            <div>
+              <p class="when">Graduating May 2026</p>
+              <h3>MS, Quantitative Finance &amp; Economics</h3>
+              <p>
+                McCoy College of Business, Texas State University · GPA 3.90<br />Financial Analytics,
+                Financial Econometrics, Fixed Income Analysis, Investments
+              </p>
+            </div>
+            <div>
+              <p class="when">Graduated 2022</p>
+              <h3>BA, Economics</h3>
+              <p>
+                Kwame Nkrumah University of Science and Technology<br />Econometrics, Statistics, Accounting,
+                International Economics
+              </p>
+            </div>
           </div>
         </div>
-        <div class="job">
-          <div class="job-when">Jan 2023 – Aug 2024</div>
-          <div>
-            <h3>Credit Officer</h3>
-            <p class="job-org">Lower Pra Rural Bank PLC · Takoradi, Ghana</p>
-            <ul><li>Evaluated 15+ loan applications weekly on repayment capacity, collateral and risk exposure.</li><li>Prepared credit reports that supported timely, well-documented lending decisions.</li><li>Monitored the active loan portfolio for policy compliance and early-stage risk indicators.</li></ul>
+      </section>
+
+      <section class="alt" id="projects">
+        <div class="container">
+          <div class="section-head">
+            <p class="overline">Projects</p>
+            <h2>Other projects</h2>
+          </div>
+          <div class="projects">
+            <a class="project" href="https://speedkelvyn.github.io/Valuation-gem/">
+              <span class="kind">Course</span>
+              <h3>The Valuation Ledger</h3>
+              <p>
+                A complete course in valuing companies covering DCF, DDM, multiples and cost of capital, with
+                interactive calculators, all also available as a Python module.
+              </p>
+              <span class="more">Read the course →</span>
+            </a>
+            <div class="project">
+              <span class="kind">Research</span>
+              <h3>Financial contagion</h3>
+              <p>
+                Investigated systemic risk transmission from bank failures to neighbouring institutions
+                applying financial data modelling across a multi-institution dataset.
+              </p>
+            </div>
+            <a class="project" href="projects/inboxzero/">
+              <span class="kind">Python · Gmail API</span>
+              <h3>InboxZero</h3>
+              <p>
+                An email triage tool that flags priority senders and keywords, labels what matters and clears
+                the rest in batches.
+              </p>
+              <span class="more">View project →</span>
+            </a>
           </div>
         </div>
-        <div class="job">
-          <div class="job-when">Nov 2020 – Dec 2022</div>
-          <div>
-            <h3>Data Officer</h3>
-            <p class="job-org">Social Security and National Insurance Trust (SSNIT) · Ghana</p>
-            <ul><li>Reconciled 500+ employee pension contributions monthly with high-volume accuracy.</li><li>Registered ~160 clients a month and ran SAS-based data review.</li><li>Co-organised outreach clinics that educated 800+ people on pension products.</li></ul>
+      </section>
+
+      <section id="skills">
+        <div class="container">
+          <div class="section-head">
+            <p class="overline">Skills</p>
+            <h2>Tools and methods</h2>
+          </div>
+          <div class="skills">
+            <div>
+              <h3>Valuation &amp; credit</h3>
+              <div class="chips">
+                <span>DCF &amp; DDM</span><span>WACC &amp; CAPM</span><span>Comparables</span
+                ><span>Monte Carlo</span><span>Credit analysis</span><span>Portfolio monitoring</span
+                ><span>Earnings quality</span>
+              </div>
+            </div>
+            <div>
+              <h3>Econometrics</h3>
+              <div class="chips">
+                <span>OLS regression</span><span>VAR</span><span>DCC-GARCH</span
+                ><span>Time-series forecasting</span><span>Fama-French factors</span><span>Fixed income</span>
+              </div>
+            </div>
+            <div>
+              <h3>Software</h3>
+              <div class="chips">
+                <span>Excel (advanced)</span><span>Python</span><span>R</span><span>STATA</span
+                ><span>SAS</span><span>SAP</span><span>Git &amp; GitHub</span>
+              </div>
+            </div>
           </div>
         </div>
-      <div class="edu">
-        <div><p class="when">Graduating May 2026</p><h3>MS, Quantitative Finance &amp; Economics</h3><p>McCoy College of Business, Texas State University · GPA 3.90<br>Financial Analytics, Financial Econometrics, Fixed Income Analysis, Investments</p></div>
-        <div><p class="when">Graduated 2022</p><h3>BA, Economics</h3><p>Kwame Nkrumah University of Science and Technology<br>Econometrics, Statistics, Accounting, International Economics</p></div>
-      </div>
-    </div>
-  </section>
+      </section>
+    </main>
 
-  <section class="alt" id="projects">
-    <div class="container">
-      <div class="section-head">
-        <p class="overline">Projects</p>
-        <h2>Other projects</h2>
-      </div>
-      <div class="projects">
-        <a class="project" href="https://speedkelvyn.github.io/Valuation-gem/">
-          <span class="kind">Course</span>
-          <h3>The Valuation Ledger</h3>
-          <p>A complete course in valuing companies covering DCF, DDM, multiples and cost of capital, with interactive calculators, all also available as a Python module.</p>
-          <span class="more">Read the course →</span>
-        </a>
-        <div class="project">
-          <span class="kind">Research</span>
-          <h3>Financial contagion</h3>
-          <p>Investigated systemic risk transmission from bank failures to neighbouring institutions applying financial data modelling across a multi-institution dataset.</p>
+    <section class="contact-band" id="contact">
+      <div class="container">
+        <div>
+          <h2>Let’s talk</h2>
+          <p>Open to analyst roles in valuation, credit risk and quantitative finance.</p>
         </div>
-        <a class="project" href="projects/inboxzero/">
-          <span class="kind">Python · Gmail API</span>
-          <h3>InboxZero</h3>
-          <p>An email triage tool that flags priority senders and keywords, labels what matters and clears the rest in batches.</p>
-          <span class="more">View project →</span>
-        </a>
+        <div class="hero-actions" style="margin-top: 0">
+          <a class="btn" href="mailto:affulk22@gmail.com">Send an email</a>
+          <a
+            class="btn ghost"
+            href="https://www.linkedin.com/in/kelvin-afful-172b29154"
+            target="_blank"
+            rel="noopener"
+            >LinkedIn ↗</a
+          >
+        </div>
       </div>
-    </div>
-  </section>
-
-  <section id="skills">
-    <div class="container">
-      <div class="section-head">
-        <p class="overline">Skills</p>
-        <h2>Tools and methods</h2>
+    </section>
+    <footer>
+      <div class="container">
+        <span>© 2026 Kelvin Afful</span>
+        <a href="https://github.com/Speedkelvyn" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <div class="skills">
-        <div><h3>Valuation &amp; credit</h3><div class="chips"><span>DCF &amp; DDM</span><span>WACC &amp; CAPM</span><span>Comparables</span><span>Monte Carlo</span><span>Credit analysis</span><span>Portfolio monitoring</span><span>Earnings quality</span></div></div>
-        <div><h3>Econometrics</h3><div class="chips"><span>OLS regression</span><span>VAR</span><span>DCC-GARCH</span><span>Time-series forecasting</span><span>Fama-French factors</span><span>Fixed income</span></div></div>
-        <div><h3>Software</h3><div class="chips"><span>Excel (advanced)</span><span>Python</span><span>R</span><span>STATA</span><span>SAS</span><span>SAP</span><span>Git &amp; GitHub</span></div></div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<section class="contact-band" id="contact">
-  <div class="container">
-    <div>
-      <h2>Let’s talk</h2>
-      <p>Open to analyst roles in valuation, credit risk and quantitative finance.</p>
-    </div>
-    <div class="hero-actions" style="margin-top:0">
-      <a class="btn" href="mailto:affulk22@gmail.com">Send an email</a>
-      <a class="btn ghost" href="https://www.linkedin.com/in/kelvin-afful-172b29154" target="_blank" rel="noopener">LinkedIn ↗</a>
-    </div>
-  </div>
-</section>
-<footer>
-  <div class="container">
-    <span>© 2026 Kelvin Afful</span>
-    <a href="https://github.com/Speedkelvyn" target="_blank" rel="noopener">GitHub</a>
-  </div>
-</footer>
-</body>
+    </footer>
+  </body>
 </html>

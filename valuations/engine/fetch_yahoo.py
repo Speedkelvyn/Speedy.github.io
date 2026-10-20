@@ -13,6 +13,7 @@ From Python:
     from fetch_yahoo import fetch
     feeds = fetch("AAPL")                      # dict research.build() takes
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,8 +42,10 @@ def _summary(yd, t, modules):
 
 
 def _timeseries(yd, t, period):
-    j = yd.get_raw_json(f"{Q1}/ws/fundamentals-timeseries/v1/finance/timeseries/{t}",
-                        params={"type": ",".join(period + x for x in RP.TYPES), "period1": 1420070400, "period2": 1900000000})
+    j = yd.get_raw_json(
+        f"{Q1}/ws/fundamentals-timeseries/v1/finance/timeseries/{t}",
+        params={"type": ",".join(period + x for x in RP.TYPES), "period1": 1420070400, "period2": 1900000000},
+    )
     return RP.series(j["timeseries"]["result"])
 
 
@@ -70,17 +73,29 @@ def fetch(ticker, peers=None, today=None):
         except Exception:
             peer_data[p] = None
     tnx = _chart(yd, "%5ETNX", "5d")["meta"]["regularMarketPrice"]
-    return {"ticker": t, "today": today or dt.date.today().isoformat(), "tnx": tnx, "summary": summary,
-            "annual": _timeseries(yd, t, "annual"), "quarterly": _timeseries(yd, t, "quarterly"),
-            "stock": RP.closes(_chart(yd, t)), "index": RP.closes(_chart(yd, "%5EGSPC")), "peers": peer_data,
-            "built": f"Yahoo Finance feeds via fetch_yahoo.py, {dt.date.today().isoformat()}"}
+    return {
+        "ticker": t,
+        "today": today or dt.date.today().isoformat(),
+        "tnx": tnx,
+        "summary": summary,
+        "annual": _timeseries(yd, t, "annual"),
+        "quarterly": _timeseries(yd, t, "quarterly"),
+        "stock": RP.closes(_chart(yd, t)),
+        "index": RP.closes(_chart(yd, "%5EGSPC")),
+        "peers": peer_data,
+        "built": f"Yahoo Finance feeds via fetch_yahoo.py, {dt.date.today().isoformat()}",
+    }
 
 
 def save_snapshot(feeds, path):
     """compact-v1 snapshot: research.from_fixture() reads it back, so a valuation can be rerun on the same data."""
-    out = {k: feeds[k] for k in ("ticker", "today", "tnx", "summary", "annual", "quarterly", "stock", "index", "peers")}
+    out = {
+        k: feeds[k]
+        for k in ("ticker", "today", "tnx", "summary", "annual", "quarterly", "stock", "index", "peers")
+    }
     out["format"] = "compact-v1"
-    json.dump(out, open(path, "w"))
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(out, f)
 
 
 if __name__ == "__main__":
@@ -92,6 +107,9 @@ if __name__ == "__main__":
     snap = f"{feeds['ticker']}_yahoo_{feeds['today']}.json"
     save_snapshot(feeds, snap)
     inp = RP.build(feeds)
-    json.dump(inp, open(f"{feeds['ticker']}_inputs.json", "w"), indent=1)
-    print(f"snapshot {snap}; inputs {feeds['ticker']}_inputs.json; model {inp['model']}; "
-          f"{len(inp['data_quality']['blocking'])} blocking, {len(inp['data_quality']['warnings'])} warnings")
+    with open(f"{feeds['ticker']}_inputs.json", "w", encoding="utf-8") as f:
+        json.dump(inp, f, indent=1)
+    print(
+        f"snapshot {snap}; inputs {feeds['ticker']}_inputs.json; model {inp['model']}; "
+        f"{len(inp['data_quality']['blocking'])} blocking, {len(inp['data_quality']['warnings'])} warnings"
+    )
