@@ -1,15 +1,33 @@
-# Kelvin Afful — Valuation & Quant Finance
+# Kelvin Afful · Portfolio
 
-Live site: https://speedkelvyn.github.io/Speedy.github.io/
+Equity valuation, credit risk and quantitative finance work by Kelvin Afful (MS Quantitative Finance & Economics, Texas State University).
 
-| Path | What it is |
-|---|---|
-| `/` | Portfolio landing page |
-| `valuations/dell/` | Dell Technologies (DELL) valuation terminal, Excel model, inputs, football field |
-| `valuations/sndk/` | Sandisk (SNDK) valuation terminal, Excel model, notebook, inputs |
-| `valuation-ledger/` | The Valuation Ledger — a complete course in valuing companies |
-| `projects/inboxzero/` | InboxZero Gmail cleaner (page, script and setup guide) |
+**Live site:** https://speedkelvyn.github.io/Speedy.github.io/
 
-Each terminal is a single self-contained page built from the valuation engine (`model.js`) and that company's inputs file. Open it and switch Bear/Base/Bull, edit inputs, or step through DCF, Monte Carlo, comps and sensitivity tabs. Live ticker research (LOAD tab) runs only inside the Claude desktop app.
+## Valuations
 
-Not investment advice.
+| Company | Call (base case) | Open |
+|---|---|---|
+| **Dell Technologies (DELL)** | Overvalued: fair value $311.65 vs $473.39 | [Interactive model](https://speedkelvyn.github.io/Speedy.github.io/valuations/dell/) · [Excel](valuations/dell/DELL_valuation.xlsx) · [Inputs](valuations/dell/dell_inputs.json) |
+| **Sandisk (SNDK)** | Fairly valued, low confidence: $1,315.59 vs $1,365.38 | [Interactive model](https://speedkelvyn.github.io/Speedy.github.io/valuations/sndk/) · [Excel](valuations/sndk/SNDK_valuation.xlsx) · [Notebook](valuations/sndk/SNDK_valuation.ipynb) |
+
+Each interactive model is a self-contained page built on a single valuation engine (FCFF DCF, Monte Carlo, comparables, peer regression and earnings-quality screens). Switch Bear, Base and Bull cases, edit any input, and audit where every number came from.
+
+## Repository layout
+
+```
+├── index.html               Portfolio homepage
+├── valuations/
+│   ├── dell/                DELL model, Excel workbook, inputs, football field
+│   └── sndk/                SNDK model, Excel workbook, notebook, inputs
+├── projects/
+│   └── inboxzero/           Gmail triage script, setup guide and project page
+└── valuation-ledger/        Redirect to the Valuation Ledger course (repo: Valuation-gem)
+```
+
+## Other repositories
+- [Valuation-gem](https://github.com/Speedkelvyn/Valuation-gem): The Valuation Ledger, an interactive course in valuing companies
+- [Growthhub](https://github.com/Speedkelvyn/Growthhub): Focus & Growth routine and study-sprint dashboard
+- [Bible365](https://github.com/Speedkelvyn/Bible365): Daily Bible-in-a-year reading tracker
+
+Valuations are for illustration only, not investment advice.
