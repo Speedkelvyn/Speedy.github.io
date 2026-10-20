@@ -13,13 +13,28 @@ Equity valuation, credit risk and quantitative finance work by Kelvin Afful (MS 
 
 Each interactive model is a self-contained page built on a single valuation engine (FCFF DCF, Monte Carlo, comparables, peer regression and earnings-quality screens). Switch Bear, Base and Bull cases, edit any input, and audit where every number came from.
 
+## Python engine
+
+The interactive pages and the Python engine in [`valuations/engine`](valuations/engine) give the same DCF, WACC and comparables results (checked by the tests to 1e-9):
+
+```bash
+cd valuations/engine
+pip install -r requirements.txt
+python run_valuation.py dell                    # full valuation report for Dell
+python run_valuation.py sndk --scenario Bull    # Sandisk, Bull case
+python run_valuation.py dell --excel dell.xlsx  # also write the live-formula Excel workbook
+python fetch_yahoo.py AAPL                      # build an inputs file for any ticker from Yahoo Finance
+python -m pytest tests
+```
+
 ## Repository layout
 
 ```
 ├── index.html               Portfolio homepage
 ├── valuations/
 │   ├── dell/                DELL model, Excel workbook, inputs, football field
-│   └── sndk/                SNDK model, Excel workbook, notebook, inputs
+│   ├── sndk/                SNDK model, Excel workbook, notebook, inputs
+│   └── engine/              Python valuation engine, CLI, Excel builder, data fetch, tests
 ├── projects/
 │   └── inboxzero/           Gmail triage script, setup guide and project page
 └── valuation-ledger/        Redirect to the Valuation Ledger course (repo: Valuation-gem)

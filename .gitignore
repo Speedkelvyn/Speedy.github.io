@@ -11,4 +11,6 @@ reports/
 # Python cache
 __pycache__/
 *.pyc
-*.pyo
+*.pyo__pycache__/
+*.pyc
+.pytest_cache/
