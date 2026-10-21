@@ -34,7 +34,7 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 
 **[Forecasting US credit spreads with machine learning](https://speedkelvyn.github.io/Speedy.github.io/projects/credit-spreads/)** Thirteen models (lasso to neural networks) and 145 real-time predictors, 1995–2026. A 27% R² on Moody's monthly Baa spread turns out to be an artifact of time-averaging; on tradable spreads the random walk wins, but a pre-specified momentum rule raises the Sharpe ratio of credit from 0.39 to 0.66 (p = 0.02). Code and data in [`projects/credit-spreads`](projects/credit-spreads).
 
-**[Can models beat the random walk in exchange rates?](https://speedkelvyn.github.io/Speedy.github.io/projects/fx-forecasting/)** Out-of-sample forecasts for daily USD/JPY (AR-GARCH) and a monthly panel of six currencies (Elastic Net, neural network, ensemble) with macro fundamentals and global risk. No model beats the random walk overall, but the neural network does in high-VIX months (Clark-West p = 0.04). Code and data in [`projects/fx-forecasting`](projects/fx-forecasting).
+**[Can models beat the random walk in exchange rates?](https://speedkelvyn.github.io/Exchange-Rate-/)** Out-of-sample forecasts for daily USD/JPY (AR-GARCH) and a monthly panel of six currencies (Elastic Net, neural network, ensemble) with macro fundamentals and global risk. No model beats the random walk overall, but the neural network does in high-VIX months (Clark-West p = 0.04). Code and data in [Exchange-Rate-](https://github.com/Speedkelvyn/Exchange-Rate-).
 
 ## Repository layout
 
@@ -47,13 +47,15 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 │       └── web/             Browser engine (model.js), page template and build_page.py
 ├── projects/
 │   ├── credit-spreads/      Credit-spread forecasting study: 13 models, FRED-MD, timing rule
-│   ├── fx-forecasting/      Exchange-rate forecasting study: GARCH, Elastic Net, neural network
-│   └── inboxzero/           Gmail triage script, tests, setup guide and project page
+│   ├── fx-forecasting/      Redirect to the exchange-rate study (repo: Exchange-Rate-)
+│   └── inboxzero/           Redirect to the Gmail triage tool (repo: Inbox-Zero)
 └── valuation-ledger/        Redirect to the Valuation Ledger course (repo: Valuation-gem)
 ```
 
 ## Other repositories
 - [Valuation-gem](https://github.com/Speedkelvyn/Valuation-gem): The Valuation Ledger, an interactive course in valuing companies
+- [Exchange-Rate-](https://github.com/Speedkelvyn/Exchange-Rate-): Can machine learning beat the random walk in exchange rates?
+- [Inbox-Zero](https://github.com/Speedkelvyn/Inbox-Zero): Gmail triage script that scores, labels and clears unread email
 - [Growthhub](https://github.com/Speedkelvyn/Growthhub): Focus & Growth routine and study-sprint dashboard
 - [Bible365](https://github.com/Speedkelvyn/Bible365): Daily Bible-in-a-year reading tracker
 

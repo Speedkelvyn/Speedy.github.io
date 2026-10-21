@@ -15,4 +15,4 @@ quote-style = "double"
 
 [lint.isort]
 # local modules imported by sibling scripts
-known-first-party = ["credit_data", "credit_models", "credit_eval", "fx_forecasting", "models", "valuation_v2", "excel_model", "research", "framework", "run_valuation", "gmail_reader"]
+known-first-party = ["credit_data", "credit_models", "credit_eval", "valuation_v2", "excel_model", "research", "framework", "run_valuation"]

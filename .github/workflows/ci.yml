@@ -17,7 +17,7 @@ jobs:
       - run: pip install ruff pytest numpy pandas openpyxl scipy
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest -q valuations/engine/tests projects/inboxzero/tests projects/fx-forecasting/tests projects/credit-spreads/tests
+      - run: pytest -q valuations/engine/tests projects/credit-spreads/tests
 
   html:
     name: Validate and format check (HTML)
@@ -27,5 +27,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npx --yes html-validate@8.24.1 $(git ls-files '*.html' ':!projects/fx-forecasting/index.html' ':!projects/credit-spreads/index.html')
+      - run: npx --yes html-validate@8.24.1 $(git ls-files '*.html' ':!projects/credit-spreads/index.html')
       - run: npx --yes prettier@3.3.3 --check $(git ls-files '*.html' '*.js')
