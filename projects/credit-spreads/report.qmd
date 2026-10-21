@@ -1,0 +1,326 @@
+---
+title: "Forecasting US Credit Spreads with Machine Learning"
+subtitle: "Thirteen models, 145 predictors, 32 years out of sample: what survives"
+author: "Kelvin Afful"
+date: last-modified
+date-format: "D MMMM YYYY"
+output-file: index.html
+abstract: |
+  I forecast changes in US corporate credit spreads one, three and six months ahead with thirteen models, from an autoregression to lasso, random forests, gradient boosting and neural networks, using 145 real-time predictors: the full FRED-MD macro database plus credit-specific signals such as the Federal Reserve's excess bond premium, financial-conditions indexes and bank lending standards. The design was fixed before any result was seen, and every forecast from 1995 to 2026 uses only information available at the time. The headline looks spectacular: the lasso explains 27% of next month's change in Moody's Baa spread. It is an artifact. Moody's series is a monthly average, and changes in averages are partly predictable by construction; on the end-of-month spread the same models explain nothing. What does survive is economic rather than statistical: a simple spread-momentum rule for deciding when to hold credit raises the Sharpe ratio of a corporate-bond position from 0.39 to 0.66 and cuts its worst month from −12% to −5%.
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    code-fold: true
+    code-summary: "Show code"
+    theme: cosmo
+    embed-resources: true
+    html-math-method: mathml
+    fig-align: center
+execute:
+  warning: false
+  message: false
+jupyter: python3
+---
+
+```{python}
+#| label: setup
+#| include: false
+import warnings
+
+import altair as alt
+import numpy as np
+import pandas as pd
+from IPython.display import Markdown
+from scipy import stats
+
+import credit_data as C
+import credit_eval as E
+import credit_models as M
+
+warnings.filterwarnings("ignore")
+alt.renderers.enable("svg")
+alt.data_transformers.disable_max_rows()
+BLUE, ORANGE, GREY, GREEN, RED = "#1f4e79", "#e07b00", "#8c8c8c", "#2e7d32", "#c62828"
+
+fc = pd.read_csv("results/forecasts.csv", parse_dates=["date"])
+imp = pd.read_csv("results/importance.csv")
+SHORT = {"BAA_SPREAD": "Baa, monthly average", "BAA_EOM": "Baa, end of month", "GZ_SPREAD": "GZ spread"}
+
+
+def table(df: pd.DataFrame, fmt: dict) -> Markdown:
+    d = df.copy()
+    for c, f in fmt.items():
+        d[c] = d[c].map(lambda v, f=f: "–" if pd.isna(v) else f.format(v + 0.0).replace("-0.0", "0.0"))
+    return Markdown(d.to_markdown(index=False))
+
+
+def sel(target, h):
+    return fc[(fc["target"] == target) & (fc["horizon"] == h)].reset_index(drop=True)
+
+
+SUM = {(t, h): E.summary(sel(t, h), M.MODELS, M.NAMES).set_index("key") for t in SHORT for h in (1, 3, 6)}
+r2 = lambda t, h, m: SUM[(t, h)].loc[m, "R²_OS vs RW (%)"]  # noqa: E731
+```
+
+# The question
+
+Credit spreads, the extra yield investors demand to hold corporate rather than government bonds, are the price of default risk and a leading indicator of the business cycle (Gilchrist and Zakrajšek 2012). Forecasting where they go next month matters for credit portfolio managers deciding how much spread risk to hold, for banks pricing loans, and for risk managers stress-testing books.
+
+The machine-learning literature suggests large gains from using many predictors and flexible models (Gu, Kelly and Xiu 2020; Bianchi, Büchner and Tamoni 2021). This study asks whether those gains appear for credit spreads when the test is strict: real-time data, a long out-of-sample period, demanding benchmarks, and corrections for comparing many models at once.
+
+# Design
+
+The design below was fixed before any out-of-sample result was computed. All thirteen models are reported, including those that fail.
+
+**Targets.** Three measures of the US corporate spread, each forecast as its change over the next $h \in \{1, 3, 6\}$ months, $\Delta s_{t+h} = s_{t+h} - s_t$:
+
+| Target | Definition | Source | Starts |
+|---|---|---|---|
+| Baa, monthly average | Moody's seasoned Baa yield minus the 10-year Treasury yield, both monthly averages of daily data | FRED: BAA, GS10 | 1953 |
+| Baa, end of month | The same spread on the last trading day of each month | FRED: BAA10Y | 1986 |
+| GZ spread | Average spread of senior unsecured corporate bonds over matched Treasuries | Federal Reserve (Gilchrist–Zakrajšek) | 1973 |
+
+**Predictors (145).** All 126 series of FRED-MD (McCracken and Ng 2016), transformed to stationarity with the published codes; credit signals (the excess bond premium, Chicago Fed NFCI and ANFCI, St. Louis Fed stress index, VIX, 10y–3m and 10y–2y term spreads, bank lending standards for business loans, business-loan delinquency rates); the target's own level and recent changes; and the other spread.
+
+**Real-time information.** Market prices are used as of the forecast date. Macro data, the excess bond premium and financial-conditions indexes are lagged one month for publication; quarterly bank data are lagged a full quarter. A predictor enters only once it has five years of history in the training window; missing values are imputed, outliers winsorised and predictors standardised using the training window alone.
+
+**Forecasting.** Forecasts are made every month from January 1995 to the end of the data with an expanding window. At forecast date $t$ a model learns only from observations whose $h$-month outcome is already known, so the most recent training row is dated $t-h$. Linear models are re-estimated every month; penalty parameters and the nonlinear models are re-tuned each January.
+
+**Models.**
+
+| Group | Model | Specification |
+|---|---|---|
+| Benchmarks | Random walk | No change |
+| | Own history (AR) | OLS on the spread's level and its 1-, 2-, 3- and 12-month changes |
+| Linear, many predictors | OLS | All predictors (a deliberate overfitting baseline) |
+| | Ridge, lasso, elastic net | Penalties by 5-fold time-series cross-validation |
+| | Principal components | Own history plus 5 factors of all other predictors (Stock and Watson 2002) |
+| | Partial least squares | 3 components |
+| | Univariate combination | Average of one-predictor regressions (Rapach, Strauss and Zhou 2010) |
+| Nonlinear | Random forest | 500 trees, minimum leaf 5, one third of predictors per split |
+| | Gradient boosting | Histogram boosting, depth 3, early stopping |
+| | Neural network | Two hidden layers (32, 16), L2 penalty, early stopping, average of 5 seeds |
+| Combinations | Mean, median | Of all models except the two benchmarks |
+
+**Evaluation.** The out-of-sample $R^2$ against the random walk and against the AR model,
+
+$$R^2_{OS} = 1 - \frac{\sum_t (\Delta s_{t+h} - \widehat{\Delta s}_{t+h})^2}{\sum_t (\Delta s_{t+h} - \widehat{\Delta s}^{\,\text{bench}}_{t+h})^2},$$
+
+with the Clark–West (2007) test against the random walk (which every model nests), the Diebold–Mariano (1995) test with the Harvey–Leybourne–Newbold correction against the AR model, and the Model Confidence Set (Hansen, Lunde and Nason 2011), which identifies the models that cannot be beaten at the 10% level once the number of comparisons is accounted for. Standard errors allow for the overlap of multi-month forecasts.
+
+# Results
+
+## The scoreboard
+
+```{python}
+#| label: tbl-scoreboard
+#| tbl-cap: "Out-of-sample R² (%) against the random walk, one-month horizon, January 1995 – 2026. Bold: p < 0.05 in the Clark–West test. ✓: in the 10% Model Confidence Set."
+MCS1 = {t: E.model_confidence_set(sel(t, 1), M.MODELS) for t in SHORT}
+rows = []
+for m in M.MODELS:
+    row = {"Model": M.NAMES[m]}
+    for t, lab in SHORT.items():
+        s = SUM[(t, 1)].loc[m]
+        v = f"{s['R²_OS vs RW (%)']:.1f}"
+        if m != "rw" and s["p (CW vs RW)"] < 0.05 and s["R²_OS vs RW (%)"] > 0:
+            v = f"**{v}**"
+        if MCS1[t][m] > 0.10:
+            v += " ✓"
+        row[lab] = v
+    rows.append(row)
+Markdown(pd.DataFrame(rows).to_markdown(index=False))
+```
+
+```{python}
+#| include: false
+L = SUM[("BAA_SPREAD", 1)]
+LE = SUM[("BAA_EOM", 1)]
+G = SUM[("GZ_SPREAD", 1)]
+best_eom = LE.drop(index=["rw"])["R²_OS vs RW (%)"].idxmax()
+```
+
+On the monthly-average Baa spread the results look like gold. The lasso explains `{python} f"{L.loc['lasso', 'R²_OS vs RW (%)']:.1f}"`% of next month's change, beats the AR benchmark by `{python} f"{L.loc['lasso', 'R²_OS vs AR (%)']:.1f}"`% (Diebold–Mariano p = `{python} f"{L.loc['lasso', 'p (DM vs AR)']:.3f}"`), and gets the direction right `{python} f"{L.loc['lasso', 'Hit rate (%)']:.0f}"`% of the time; the random forest and the model averages are close behind, and only the lasso, random forest and the two combinations survive the Model Confidence Set.
+
+On the other two spreads there is almost nothing. For the end-of-month Baa spread the best model (`{python} M.NAMES[best_eom]`) reaches `{python} f"{LE.loc[best_eom, 'R²_OS vs RW (%)']:.1f}"`%, and the confidence set cannot reject even the random walk. For the GZ spread the average of the models reaches `{python} f"{G.loc['mean_ml', 'R²_OS vs RW (%)']:.1f}"`% (Clark–West p = `{python} f"{G.loc['mean_ml', 'p (CW vs RW)']:.3f}"`) but does not beat the spread's own history (`{python} f"{G.loc['mean_ml', 'R²_OS vs AR (%)']:.1f}"`% against AR, p = `{python} f"{G.loc['mean_ml', 'p (DM vs AR)']:.2f}"`). At three months the monthly-average Baa spread keeps a small edge (lasso `{python} f"{SUM[('BAA_SPREAD', 3)].loc['lasso', 'R²_OS vs RW (%)']:.1f}"`%), and at six months nothing beats the random walk for any spread (appendix tables). Throughout, the kitchen-sink OLS and the neural network do worst, the familiar cost of fitting many parameters to a few hundred noisy observations.
+
+## Why the monthly-average spread looks predictable
+
+The gap between the first two columns is not about credit. Moody's monthly series is the *average* of daily yields over the month. Suppose the daily spread were a pure random walk with no predictability at all. The average for month $t+1$ still shares part of its path with information available at the end of month $t$, because the end-of-month level, not the month's average, is the starting point for next month. Working (1960) showed that first differences of a time-averaged random walk have autocorrelation of about 0.25, and that much of next month's change in the average is therefore predictable from data that are themselves monthly averages or end-of-month prices.
+
+```{python}
+#| include: false
+spr = C.load_spreads().loc["1986":]
+ac = {c: spr[c].diff().autocorr() for c in spr}
+```
+
+The data fit this exactly: since 1986 the first-order autocorrelation of monthly changes is `{python} f"{ac['BAA_SPREAD']:.2f}"` for the monthly-average Baa spread but `{python} f"{ac['BAA_EOM']:.2f}"` for the same spread measured at month end. The predictors the models lean on confirm it: the most-used are the other spread's latest change, the latest change in the Baa yield itself, stock prices and dividend yields, all of which describe where markets ended the month.
+
+```{python}
+#| label: fig-importance
+#| fig-cap: "What the models use for the monthly-average Baa spread (one month ahead): random-forest importance averaged over the annual refits."
+names = {"other_spread_chg": "GZ spread, last change", "md_S&P 500": "S&P 500 return", "md_S&P div yield": "S&P dividend yield",
+         "own_chg_1": "Own last change", "md_BAA": "Baa yield, change", "ANFCI": "Adjusted NFCI", "own_chg_2": "Own change, t−1",
+         "md_GS1": "1-year yield, change", "other_spread": "GZ spread, level", "own_level": "Own level", "md_CP3Mx": "3-month CP rate",
+         "md_COMPAPFFx": "CP – fed funds", "md_CMRMTSPLx": "Real retail sales", "md_BAAFFM": "Baa – fed funds", "STLFSI": "St. Louis stress index"}
+top = (imp[(imp["target"] == "BAA_SPREAD") & (imp["horizon"] == 1)].groupby("predictor")["rf_importance"].mean()
+       .sort_values(ascending=False).head(10).rename("Importance").reset_index())
+top["Predictor"] = top["predictor"].map(lambda p: names.get(p, p.replace("md_", "")))
+alt.Chart(top).mark_bar(color=BLUE).encode(
+    x=alt.X("Importance:Q", title="Mean decrease in impurity"), y=alt.Y("Predictor:N", sort="-x", title=None)
+).properties(width=520, height=260)
+```
+
+```{python}
+#| label: fig-cssed
+#| fig-cap: "Cumulative squared-error difference, random walk minus lasso, one month ahead. Rising: the lasso is ahead. The same model, the same predictors, two ways of measuring the same spread."
+cs = []
+for t in ("BAA_SPREAD", "BAA_EOM"):
+    g = sel(t, 1)
+    cs.append(pd.DataFrame({"date": g["date"], "Spread": SHORT[t], "Cumulative SSE difference": np.cumsum(g["actual"] ** 2 - (g["actual"] - g["lasso"]) ** 2)}))
+cs = pd.concat(cs)
+zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color=GREY, strokeDash=[4, 3]).encode(y=alt.Y("y:Q", title="Cumulative SSE difference"))
+line = alt.Chart(cs).mark_line(strokeWidth=1.6).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%Y")),
+    y="Cumulative SSE difference:Q",
+    color=alt.Color("Spread:N", scale=alt.Scale(range=[BLUE, ORANGE]), legend=alt.Legend(orient="bottom", title=None)),
+)
+(zero + line).properties(width=640, height=280)
+```
+
+The lesson matters beyond this study. Many macro-financial series are published as monthly averages (Moody's yields, the effective federal funds rate, the VIX in most databases), and a forecasting exercise on them can report large, "significant" gains that no investor could ever capture. Forecasts of an average are legitimate when the average is what matters (for example a monthly economic forecast), but they say nothing about the ability to anticipate market moves.
+
+# Economic value: a credit-timing rule
+
+Statistical fit and money are different things: a model can have an $R^2$ near zero and still be useful if it is right at the moments that matter. To test this I use the tradable end-of-month spread and a rule fixed in advance. Each month, hold a Baa corporate bond position (rather than Treasuries) when its expected excess return is positive:
+
+$$\text{hold credit if } \frac{s_t}{12} - D\,\widehat{\Delta s}_{t+1} > 0,$$
+
+where $s_t/12$ is a month of carry and $D = 8$ is an approximate spread duration. The realised excess return of credit over Treasuries is approximated as $s_t/12 - D\,\Delta s_{t+1}$. With the random-walk forecast the rule always holds credit, which is the buy-and-hold benchmark.
+
+```{python}
+#| label: tbl-timing
+#| tbl-cap: "Credit timing on the end-of-month Baa spread, January 1995 – 2026. Excess returns over Treasuries; before transaction costs unless stated."
+g1 = sel("BAA_EOM", 1)
+COST = 0.25  # percent per switch between credit and Treasuries
+rows, R = [], {}
+for m in ["rw", "ar", "lasso", "enet", "pcr", "rf", "gbm", "mean_ml", "median_ml"]:
+    r = E.credit_timing(g1, m)
+    R[m] = r
+    hold = (g1["level"] / 12 - E.DURATION * g1[m]) > 0
+    switches = hold.astype(int).diff().abs().fillna(0).to_numpy()
+    net = r - COST * switches
+    rows.append({"Strategy": "Buy and hold credit" if m == "rw" else M.NAMES[m], **E.perf(r),
+                 "Sharpe after costs": np.sqrt(12) * net.mean() / net.std()})
+timing = pd.DataFrame(rows)
+table(timing, {"Mean (% p.a.)": "{:.2f}", "Volatility (% p.a.)": "{:.2f}", "Sharpe ratio": "{:.2f}", "Worst month (%)": "{:.1f}",
+               "Months in credit (%)": "{:.0f}", "Sharpe after costs": "{:.2f}"})
+```
+
+```{python}
+#| include: false
+def memmel(a, b):
+    """Jobson–Korkie test of equal Sharpe ratios with Memmel's correction; one-sided p for a > b."""
+    n = len(a)
+    sa, sb, rho = a.mean() / a.std(), b.mean() / b.std(), np.corrcoef(a, b)[0, 1]
+    v = (2 - 2 * rho + 0.5 * (sa**2 + sb**2 - 2 * sa * sb * rho**2)) / n
+    return 1 - stats.norm.cdf((sa - sb) / np.sqrt(v))
+
+
+T = timing.set_index("Strategy")
+p_sharpe = memmel(R["ar"].to_numpy(), R["rw"].to_numpy())
+sub = []
+for lab, mask in (("1995–2007", g1["date"] < "2008-01-01"), ("2008–2009", (g1["date"] >= "2008-01-01") & (g1["date"] < "2010-01-01")),
+                  ("2010–2026", g1["date"] >= "2010-01-01"), ("Excluding 2008–09", (g1["date"] < "2008-01-01") | (g1["date"] >= "2010-01-01"))):
+    a, b = R["ar"][mask.to_numpy()], R["rw"][mask.to_numpy()]
+    sub.append({"Period": lab, "Months": int(mask.sum()), "Sharpe, momentum rule": np.sqrt(12) * a.mean() / a.std(),
+                "Sharpe, buy and hold": np.sqrt(12) * b.mean() / b.std(), "Worst month, rule (%)": a.min(), "Worst month, hold (%)": b.min()})
+sub = pd.DataFrame(sub)
+dur = {D: (lambda a, b: (np.sqrt(12) * a.mean() / a.std(), np.sqrt(12) * b.mean() / b.std()))(E.credit_timing(g1, "ar", D), E.credit_timing(g1, "rw", D)) for D in (5, 8, 10)}
+```
+
+The winner is the simplest model. Driven only by the spread's own recent changes, the rule exits credit after spreads have started to widen and returns once they stabilise. It raises the Sharpe ratio from `{python} f"{T.loc['Buy and hold credit', 'Sharpe ratio']:.2f}"` to `{python} f"{T.loc['Own history (AR)', 'Sharpe ratio']:.2f}"` (Jobson–Korkie–Memmel test, one-sided p = `{python} f"{p_sharpe:.3f}"`) and cuts the worst month from `{python} f"{T.loc['Buy and hold credit', 'Worst month (%)']:.1f}"`% to `{python} f"{T.loc['Own history (AR)', 'Worst month (%)']:.1f}"`%, while staying invested `{python} f"{T.loc['Own history (AR)', 'Months in credit (%)']:.0f}"`% of the time. After a 25 basis-point cost for every switch the Sharpe ratio is `{python} f"{T.loc['Own history (AR)', 'Sharpe after costs']:.2f}"`. The machine-learning models add nothing on top: their extra predictors make the rule switch more without avoiding more losses.
+
+```{python}
+#| label: tbl-robust
+#| tbl-cap: "Robustness of the momentum rule (AR model) against buy and hold"
+table(sub, {"Sharpe, momentum rule": "{:.2f}", "Sharpe, buy and hold": "{:.2f}", "Worst month, rule (%)": "{:.1f}", "Worst month, hold (%)": "{:.1f}"})
+```
+
+The improvement is not one lucky crisis. It holds before 2008, after 2010 and with the financial crisis removed, and it survives other duration assumptions (Sharpe `{python} f"{dur[5][0]:.2f}"` against `{python} f"{dur[5][1]:.2f}"` with $D=5$, `{python} f"{dur[10][0]:.2f}"` against `{python} f"{dur[10][1]:.2f}"` with $D=10$). Its source is the modest but real persistence of spread changes (autocorrelation `{python} f"{ac['BAA_EOM']:.2f}"` at month end): when spreads widen, they tend to keep widening for a while, and the losses that matter most come in those episodes.
+
+```{python}
+#| label: fig-wealth
+#| fig-cap: "Cumulative excess return over Treasuries: buy-and-hold Baa credit and the momentum rule (before costs)"
+w = pd.DataFrame({"date": g1["date"], "Buy and hold credit": R["rw"].cumsum().to_numpy(), "Momentum rule": R["ar"].cumsum().to_numpy()})
+w = w.melt("date", var_name="Strategy", value_name="Cumulative excess return (%)")
+alt.Chart(w).mark_line(strokeWidth=1.6).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%Y")),
+    y=alt.Y("Cumulative excess return (%):Q"),
+    color=alt.Color("Strategy:N", scale=alt.Scale(range=[GREY, BLUE]), legend=alt.Legend(orient="bottom", title=None)),
+).properties(width=640, height=300)
+```
+
+# Conclusion
+
+Thirteen models and 145 real-time predictors do not forecast month-ahead changes in tradable US credit spreads better than a random walk or the spread's own history. The apparent exception, a lasso explaining over a quarter of the variation in Moody's monthly Baa spread, comes from forecasting a monthly average and disappears on the end-of-month spread. That finding is the main methodological contribution: forecasting studies that use time-averaged financial series should check the result on point-in-time data before reporting it.
+
+The useful signal is in the spread's own momentum. A rule fixed in advance that holds credit only when carry outweighs the expected widening improves the risk-adjusted return of a corporate-bond position significantly before costs, mostly by avoiding the worst months, and the result holds across subperiods and duration assumptions. Trading costs eat part of the gain (a Sharpe ratio of `{python} f"{T.loc['Own history (AR)', 'Sharpe after costs']:.2f}"` against `{python} f"{T.loc['Buy and hold credit', 'Sharpe ratio']:.2f}"` at 25 basis points per switch), so the case is strongest for investors who can move between credit and Treasuries cheaply, for example through futures or ETFs. For a credit portfolio this argues for simple, persistent risk signals over complex return forecasts.
+
+**Limitations.** Macro data are the latest vintage rather than what was known in real time, which if anything favours the macro-heavy models. Returns are approximated from spread changes with a fixed duration rather than taken from a bond index, and the ICE BofA index data that would allow exact returns are no longer freely available. The end-of-month Baa series starts in 1986, so its training window is shorter than for the other spreads.
+
+# References {.unnumbered}
+
+Bianchi, D., Büchner, M. and Tamoni, A. (2021). Bond risk premiums with machine learning. *Review of Financial Studies* 34(2).
+
+Clark, T. and West, K. (2007). Approximately normal tests for equal predictive accuracy in nested models. *Journal of Econometrics* 138(1).
+
+Diebold, F. and Mariano, R. (1995). Comparing predictive accuracy. *Journal of Business & Economic Statistics* 13(3).
+
+Gilchrist, S. and Zakrajšek, E. (2012). Credit spreads and business cycle fluctuations. *American Economic Review* 102(4).
+
+Gu, S., Kelly, B. and Xiu, D. (2020). Empirical asset pricing via machine learning. *Review of Financial Studies* 33(5).
+
+Hansen, P., Lunde, A. and Nason, J. (2011). The model confidence set. *Econometrica* 79(2).
+
+Harvey, D., Leybourne, S. and Newbold, P. (1997). Testing the equality of prediction mean squared errors. *International Journal of Forecasting* 13(2).
+
+McCracken, M. and Ng, S. (2016). FRED-MD: A monthly database for macroeconomic research. *Journal of Business & Economic Statistics* 34(4).
+
+Memmel, C. (2003). Performance hypothesis testing with the Sharpe ratio. *Finance Letters* 1.
+
+Rapach, D., Strauss, J. and Zhou, G. (2010). Out-of-sample equity premium prediction: combination forecasts and links to the real economy. *Review of Financial Studies* 23(2).
+
+Stock, J. and Watson, M. (2002). Macroeconomic forecasting using diffusion indexes. *Journal of Business & Economic Statistics* 20(2).
+
+Working, H. (1960). Note on the correlation of first differences of averages in a random chain. *Econometrica* 28(4).
+
+# Appendix: full results by horizon {.unnumbered}
+
+R²_OS against the random walk and the AR benchmark, with p-values (Clark–West against the random walk, Diebold–Mariano with the Harvey–Leybourne–Newbold correction against AR).
+
+::: {.panel-tabset}
+
+```{python}
+#| output: asis
+for t, lab in SHORT.items():
+    for h in (1, 3, 6):
+        s = SUM[(t, h)].reset_index(drop=True)
+        d = s.copy()
+        for c, f in {"R²_OS vs RW (%)": "{:.2f}", "p (CW vs RW)": "{:.3f}", "R²_OS vs AR (%)": "{:.2f}", "p (DM vs AR)": "{:.3f}", "Hit rate (%)": "{:.1f}"}.items():
+            d[c] = d[c].map(lambda v, f=f: "–" if pd.isna(v) else f.format(v))
+        print(f"## {lab}, {h} month{'s' if h > 1 else ''}\n")
+        print(d.to_markdown(index=False))
+        print()
+```
+
+:::
+
+# Appendix: reproducing the results {.unnumbered}
+
+```bash
+pip install -r requirements.txt
+python run_credit.py         # all three spreads x 3 horizons, about an hour on a 2-core laptop
+quarto render report.qmd
+```
