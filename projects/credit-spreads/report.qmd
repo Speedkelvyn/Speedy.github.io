@@ -1,6 +1,7 @@
 ---
 title: "Forecasting US Credit Spreads with Machine Learning"
 subtitle: "Thirteen models, 145 predictors, 32 years out of sample: what survives"
+description-meta: "Thirteen machine-learning models and 145 real-time predictors tested out of sample on US credit spreads, 1995–2026: a 27% R² turns out to be an averaging artifact, and a momentum rule lifts the Sharpe ratio of credit from 0.39 to 0.66."
 author: "Kelvin Afful"
 date: last-modified
 date-format: "D MMMM YYYY"
