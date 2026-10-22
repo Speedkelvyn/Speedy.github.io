@@ -25,7 +25,9 @@ pip install -r requirements.txt
 python run_valuation.py dell                    # full valuation report for Dell
 python run_valuation.py sndk --scenario Bull    # Sandisk, Bull case
 python run_valuation.py dell --excel dell.xlsx  # also write the live-formula Excel workbook
-python fetch_yahoo.py AAPL                      # build an inputs file for any ticker from Yahoo Finance
+python value_ticker.py AAPL                     # any ticker, one command: fetch, value, write page + workbook to valuations/aapl/
+python value_ticker.py --snapshot AAPL_yahoo_2026-10-21.json   # rerun on saved data, no network
+python fetch_yahoo.py AAPL                      # only build the inputs file from Yahoo Finance
 python -m pytest tests
 python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild a page after editing inputs
 ```
@@ -51,7 +53,7 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 ├── valuations/
 │   ├── dell/                DELL model, Excel workbook, inputs, football field
 │   ├── sndk/                SNDK model, Excel workbook, notebook, inputs
-│   └── engine/              Python engine, CLI, Excel builder, data fetch, tests
+│   └── engine/              Python engine, CLI, value_ticker.py (any ticker), Excel builder, data fetch, tests
 │       └── web/             Browser engine (model.js), page template and build_page.py
 ├── projects/
 │   ├── credit-spreads/      Credit-spread forecasting study: 13 models, FRED-MD, timing rule

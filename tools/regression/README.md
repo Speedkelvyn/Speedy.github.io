@@ -44,4 +44,5 @@ The first version (`regression_tool.html`, kept in a course folder) had these pr
 | `index.html`, `app.js` | The page |
 | `regression.js` | Numerical core: reading values, complete-case design, OLS, logit, probit (no DOM access) |
 | `sample.csv`, `make_sample.py` | Sample data from the recession-risk study and the script that builds it |
+| `build_single.py` | Writes `regression_tool.html`, one file with the code and sample data inlined, for use from a folder on disk |
 | `tests/` | Comparison with statsmodels |

@@ -20,5 +20,5 @@ known-first-party = [
     "vol_data", "vol_models", "vol_baselines", "vol_eval",
     "rec_data", "rec_models", "rec_eval",
     "ind_data", "ind_models", "ind_eval",
-    "valuation_v2", "excel_model", "research", "framework", "run_valuation",
+    "valuation_v2", "excel_model", "research", "framework", "run_valuation", "value_ticker", "build_page",
 ]  # fmt: skip

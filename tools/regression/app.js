@@ -81,6 +81,8 @@
   });
 
   $("sampleBtn").addEventListener("click", () => {
+    const embedded = $("sampleData"); // present in the single-file build, which cannot fetch from disk
+    if (embedded) return loadCsv(embedded.textContent.trim(), "sample.csv");
     fetch("sample.csv")
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
