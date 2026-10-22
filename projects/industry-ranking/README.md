@@ -13,7 +13,7 @@ Thirteen methods rank Kenneth French's 49 US industry portfolios every month fro
 - **Two textbook signals fail.** Value (book-to-market) has no ranking power (IC 0.000). Short-term reversal has the wrong sign at the industry level: last month's winners keep winning, and betting on reversal loses money.
 - **Volatility-managing fixes momentum, not the learners.** Scaling each month's book to a 10% volatility target lifts momentum's net Sharpe ratio from 0.24 to 0.34 (p = 0.09) and cuts its maximum drawdown from 57% to 37%. The lasso (0.36 → 0.34) and the forest do not gain. Managed momentum is within 0.04 of the managed lasso in all nine window and cap variants.
 - **The learners' edge over momentum sits in momentum's worst months.** Their books move with momentum at a slope of 0.72–0.80 and lose 7–11% in momentum's ten worst months (momentum: 14.7%). The lasso beats momentum by 1.3% a year net (t = 1.0) and all of it is earned in those ten months; as a gross alpha against momentum it keeps 2.1% a year without them (t = 2.0).
-- **Other industries' lagged returns add little.** A cross-industry elastic net ranks significantly (IC 0.032, t = 4.3) but turns the book over 26 times a year and loses money after costs; on average 2.3 of 49 predictors are active. Added to momentum it lifts the net Sharpe ratio from 0.24 to 0.35 (p = 0.06), higher in all three sub-periods, but it does not improve on the lasso. The follow-up tests are not adjusted for multiple testing.
+- **Other industries' lagged returns add little.** A cross-industry elastic net ranks significantly (IC 0.032, t = 4.3) but turns the book over 26 times a year and loses money after costs; on average 2.3 of 49 predictors are active. Added to momentum it lifts the net Sharpe ratio from 0.24 to 0.35 (p = 0.06), higher in all three sub-periods, but it does not improve on the lasso, and ranking by percentile instead of z-score cuts the Sharpe gain to 0.31 (p = 0.20). The combined September 2026 ranking is frozen in `results/live_forecast_2026-09.csv` (`freeze_live.py`) to be scored when the month is published. The follow-up tests are not adjusted for multiple testing.
 - **Latest ranking (end of August 2026):** top five are computers, electronic equipment and chips, machinery, precious metals and metal mining; bottom five are consumer goods, entertainment, medical equipment, paper and apparel. It will be scored when Kenneth French publishes September.
 
 ## Design
@@ -31,6 +31,7 @@ Expanding window, refitted every 12 months (linear models) or 36 months (trees a
 | `analyze_ind.py` | Builds every table and number in the report |
 | `run_crossind.py` | Cross-industry lead-lag forecasts, saves `results/crossind_forecasts.csv` |
 | `ind_extensions.py` | Volatility-managed books, signal combinations, bear-market flag |
+| `freeze_live.py` | Saves the combined signal's ranking for the coming month before its returns exist |
 | `analyze_extensions.py` | The three follow-up experiments, saves `results/extensions_*.csv` |
 | `report.qmd` | The report |
 | `data/` | Raw inputs and their sources |

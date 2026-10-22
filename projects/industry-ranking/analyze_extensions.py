@@ -41,6 +41,7 @@ def load() -> pd.DataFrame:
     fc = fc.merge(cx, on=["date", "industry"], how="left")
     fc["mom_plus_x"] = X.zscore_sum(fc, ["mom", "xlead"])
     fc["lasso_plus_x"] = X.zscore_sum(fc, ["lasso", "xlead"])
+    fc["mom_plus_x_rank"] = X.rank_sum(fc, ["mom", "xlead"])  # robustness: ranks instead of z-scores
     return fc
 
 
@@ -123,7 +124,7 @@ def experiment_b(fc: pd.DataFrame, fac: pd.DataFrame) -> pd.DataFrame:
 def experiment_c(fc: pd.DataFrame, fac: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     net_mom = E.long_short(fc, "mom")["net"]
     rows = []
-    for m in ("mom", "lasso", "xind", "xlead", "mom_plus_x", "lasso_plus_x"):
+    for m in ("mom", "lasso", "xind", "xlead", "mom_plus_x", "lasso_plus_x", "mom_plus_x_rank"):
         ic, ls = E.monthly_ic(fc, m), E.long_short(fc, m)
         a, t = E.factor_alpha(ls["net"], fac)
         rows.append({

@@ -3932,7 +3932,7 @@ Table 5: Machine-learning books against the momentum book (unmanaged). Slope an
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> ext_x.reset_index()</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;model&quot;</span>] <span class="op">=</span> x[<span class="st">&quot;model&quot;</span>].<span class="bu">map</span>({<span class="st">&quot;mom&quot;</span>: <span class="st">&quot;Momentum&quot;</span>, <span class="st">&quot;lasso&quot;</span>: <span class="st">&quot;Lasso&quot;</span>, <span class="st">&quot;xind&quot;</span>: <span class="st">&quot;Cross-industry, full forecast&quot;</span>, <span class="st">&quot;xlead&quot;</span>: <span class="st">&quot;Cross-industry, lead–lag part&quot;</span>,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                             <span class="st">&quot;mom_plus_x&quot;</span>: <span class="st">&quot;Momentum + lead–lag&quot;</span>, <span class="st">&quot;lasso_plus_x&quot;</span>: <span class="st">&quot;Lasso + lead–lag&quot;</span>})</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                             <span class="st">&quot;mom_plus_x&quot;</span>: <span class="st">&quot;Momentum + lead–lag&quot;</span>, <span class="st">&quot;lasso_plus_x&quot;</span>: <span class="st">&quot;Lasso + lead–lag&quot;</span>, <span class="st">&quot;mom_plus_x_rank&quot;</span>: <span class="st">&quot;Momentum + lead–lag, ranks instead of z-scores&quot;</span>})</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;IC (t)&quot;</span>] <span class="op">=</span> x.<span class="bu">apply</span>(<span class="kw">lambda</span> r: <span class="ss">f&quot;</span><span class="sc">{</span>r[<span class="st">&#39;IC&#39;</span>]<span class="sc">:.3f}</span><span class="ss"> (</span><span class="sc">{</span>r[<span class="st">&#39;IC t&#39;</span>]<span class="sc">:.1f}</span><span class="ss">)&quot;</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;Alpha (t)&quot;</span>] <span class="op">=</span> x.<span class="bu">apply</span>(<span class="kw">lambda</span> r: <span class="ss">f&quot;</span><span class="sc">{</span>r[<span class="st">&#39;alpha (% p.a.)&#39;</span>]<span class="sc">:.1f}</span><span class="ss"> (</span><span class="sc">{</span>r[<span class="st">&#39;alpha t&#39;</span>]<span class="sc">:.1f}</span><span class="ss">)&quot;</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;p&quot;</span>] <span class="op">=</span> x[<span class="st">&quot;p (Sharpe &gt; momentum)&quot;</span>]</span>
@@ -3948,13 +3948,13 @@ Table 6: Cross-industry lead–lag alone and added to a signal (equal-weight su
 <div class="cell-output cell-output-display cell-output-markdown" data-execution_count="12">
 <table class="do-not-create-environment cell caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 29%">
-<col style="width: 12%">
-<col style="width: 15%">
-<col style="width: 9%">
-<col style="width: 16%">
-<col style="width: 12%">
-<col style="width: 5%">
+<col style="width: 39%">
+<col style="width: 10%">
+<col style="width: 13%">
+<col style="width: 8%">
+<col style="width: 13%">
+<col style="width: 10%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -4022,6 +4022,15 @@ Table 6: Cross-industry lead–lag alone and added to a signal (equal-weight su
 <td style="text-align: left;">4.7 (2.3)</td>
 <td style="text-align: left;">0.20</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;">Momentum + lead–lag, ranks instead of z-scores</td>
+<td style="text-align: left;">0.055 (5.6)</td>
+<td style="text-align: left;">3.8</td>
+<td style="text-align: left;">0.31</td>
+<td style="text-align: left;">21</td>
+<td style="text-align: left;">4.4 (2.3)</td>
+<td style="text-align: left;">0.20</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -4029,7 +4038,8 @@ Table 6: Cross-industry lead–lag alone and added to a signal (equal-weight su
 </figure>
 </div>
 </div>
-<p>The lead–lag part ranks industries significantly (IC 0.032, t = 4.3) but is not tradable alone: it turns the book over 26 times a year and loses 0.9% after costs. It is sparse, with 2.3 of 49 predictors active on average, so it is not the diffuse spillover the idea suggests. Added to momentum, it raises the IC by 0.010 (t = 2.1) and the net Sharpe ratio from 0.24 to 0.35 (p = 0.06), with a higher net Sharpe ratio in each of the three sub-periods (<a href="#tbl-cross-periods" class="quarto-xref">Table 7</a>) and, once volatility-managed, 0.40 against 0.34 for momentum. Against that, the combination does not beat the lasso (0.36), adding the signal to the lasso lowers its Sharpe ratio, and the managed-Sharpe comparison with momentum is not significant (p = 0.24). The evidence that other industries’ returns carry information beyond momentum is suggestive and no stronger.</p>
+<p>The lead–lag part ranks industries significantly (IC 0.032, t = 4.3) but is not tradable alone: it turns the book over 26 times a year and loses 0.9% after costs. It is sparse, with 2.3 of 49 predictors active on average, so it is not the diffuse spillover the idea suggests. Added to momentum, it raises the IC by 0.010 (t = 2.1) and the net Sharpe ratio from 0.24 to 0.35 (p = 0.06), with a higher net Sharpe ratio in each of the three sub-periods (<a href="#tbl-cross-periods" class="quarto-xref">Table 7</a>) and, once volatility-managed, 0.40 against 0.34 for momentum. Against that, the combination does not beat the lasso (0.36), adding the signal to the lasso lowers its Sharpe ratio, and the managed-Sharpe comparison with momentum is not significant (p = 0.24). Replacing the z-scores, which a few extreme lead–lag forecasts can dominate, by percentile ranks keeps the IC gain (0.055) but shrinks the Sharpe gain to 0.31 (p = 0.20) because the book then trades more. The evidence that other industries’ returns carry information beyond momentum is suggestive and no stronger.</p>
+<p><strong>A live test.</strong> The combined ranking for September 2026, made with data through August, is saved in <code>results/live_forecast_2026-09.csv</code> and committed before the month’s returns exist. It will be scored when Kenneth French publishes September; one month settles nothing, but each later month adds a forecast that could not have been tuned. Coal ranks first in that file only through the lead–lag component (its momentum rank is in the lower half), and twelfth on the rank-based variant.</p>
 <div class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Show code</summary>
