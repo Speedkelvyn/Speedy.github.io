@@ -29,6 +29,8 @@ jupyter: python3
 #| label: setup
 #| include: false
 import json
+import math
+import re
 import warnings
 
 import altair as alt
@@ -49,13 +51,19 @@ costs = pd.read_csv("results/costs.csv")
 imp = pd.read_csv("results/importance_top.csv")
 cur = pd.read_csv("results/current_ranking.csv")
 H = json.load(open("results/headline.json"))
+ext_vol = pd.read_csv("results/extensions_volmanaged.csv")
+ext_grid = pd.read_csv("results/extensions_volgrid.csv")
+ext_dec = pd.read_csv("results/extensions_decomposition.csv").set_index("model")
+ext_x = pd.read_csv("results/extensions_crossind.csv").set_index("model")
+ext_xp = pd.read_csv("results/extensions_crossind_periods.csv")
+ext_j = json.load(open("results/extensions.json"))
 N = M.NAMES
 
 
 def table(df: pd.DataFrame, fmt: dict) -> Markdown:
     d = df.copy()
     for c, f in fmt.items():
-        d[c] = d[c].map(lambda v, f=f: "–" if pd.isna(v) else f.format(v + 0.0).replace("-0.0", "0.0"))
+        d[c] = d[c].map(lambda v, f=f: "–" if pd.isna(v) else re.sub(r"^-(0\.0+)$", r"\1", f.format(v + 0.0)))  # only "-0.0" loses its sign
     return Markdown(d.to_markdown(index=False, disable_numparse=True))
 ```
 
@@ -193,6 +201,80 @@ Markdown(cp.reset_index().to_markdown(index=False, disable_numparse=True))
 
 The portfolios turn over `{python} f"{Bd.loc[['mom', 'lasso', 'rf', 'mean_ml'], 'Annual turnover'].min():.0f}"`–`{python} f"{Bd.loc[['mom', 'lasso', 'rf', 'mean_ml'], 'Annual turnover'].max():.0f}"` times their gross exposure a year, so costs decide the outcome. Before costs the lasso's Sharpe ratio is `{python} f"{Bd.loc['lasso', 'Sharpe, gross']:.2f}"`; at 20 basis points per unit traded it is `{python} f"{Bd.loc['lasso', 'Sharpe, net']:.2f}"`; at 40 it is `{python} f"{lasso40:.2f}"`. Industry futures or low-cost ETFs make 10 basis points plausible for an institution; 40 is closer to what a retail investor pays.
 
+# Follow-up experiments
+
+The scoreboard leaves three questions open. The tests below were run on the saved forecasts after the main study was finished; their settings were fixed before each run and are stated here. They add about twenty p-values to the thirteen models above, none adjusted for multiple testing, so a p-value near 0.05 here is a lead to follow, not a finding.
+
+## Does managing volatility fix the costs?
+
+Volatility-managed momentum (Barroso and Santa-Clara 2015) scales the book down after turbulent months. Here each month's long–short book is multiplied by 10% divided by the annualised volatility of the strategy's own returns over the last six months, capped at 2, and the 20 basis points are charged on the scaled, traded exposure. The scale for month *t+1* uses only returns earned up to the end of month *t*.
+
+```{python}
+#| label: tbl-vol
+#| tbl-cap: "Long–short portfolios before and after volatility-managing, net of 20 bp per unit traded. p: one-sided test that the managed Sharpe ratio exceeds the unmanaged one."
+v = ext_vol.copy()
+v["model"] = v["model"].map({"mom": "Momentum", "lasso": "Lasso", "rf": "Random forest", "mean_ml": "Average of ML models", "mom_plus_x": "Momentum + cross-industry"})
+v["p"] = v["p (Sharpe > unmanaged)"]
+table(v[["model", "kind", "net (% p.a.)", "vol (% p.a.)", "Sharpe", "max drawdown (%)", "p"]],
+      {"net (% p.a.)": "{:.1f}", "vol (% p.a.)": "{:.1f}", "Sharpe": "{:.2f}", "max drawdown (%)": "{:.0f}", "p": "{:.2f}"})
+```
+
+```{python}
+#| include: false
+vm = ext_vol.set_index(["model", "kind"])
+g = ext_grid.copy()
+g["gap"] = (g["Sharpe managed"] - g.groupby(["window", "cap"])["Sharpe managed"].transform(lambda s: s[g.loc[s.index, "model"] == "lasso"].iloc[0]))
+mom_vs_lasso = g[g["model"] == "mom"].set_index(["window", "cap"])["gap"].abs().max()
+```
+
+Managing helps the one portfolio that has a volatility problem. Momentum's Sharpe ratio rises from `{python} f"{vm.loc[('mom', 'unmanaged'), 'Sharpe']:.2f}"` to `{python} f"{vm.loc[('mom', 'vol-managed'), 'Sharpe']:.2f}"` (p = `{python} f"{vm.loc[('mom', 'vol-managed'), 'p (Sharpe > unmanaged)']:.2f}"`) and its maximum drawdown shrinks from `{python} f"{-vm.loc[('mom', 'unmanaged'), 'max drawdown (%)']:.0f}"`% to `{python} f"{-vm.loc[('mom', 'vol-managed'), 'max drawdown (%)']:.0f}"`%. The lasso, the forest and the average of the learners gain nothing (all p above 0.4): their worst months (losses of `{python} f"{-vm.loc[('lasso', 'unmanaged'), 'worst month (%)']:.0f}"`% to `{python} f"{-vm.loc[('rf', 'unmanaged'), 'worst month (%)']:.0f}"`%) were already milder than momentum's `{python} f"{-vm.loc[('mom', 'unmanaged'), 'worst month (%)']:.0f}"`%). The consequence is that, once both are managed, plain momentum matches the lasso; in each of the nine window and cap combinations of the robustness grid the two Sharpe ratios are within `{python} f"{math.ceil(mom_vs_lasso * 100) / 100:.2f}"` of each other. Machine learning's apparent advantage in @tbl-scoreboard is therefore partly a volatility advantage that a one-line scaling rule reproduces for momentum.
+
+## Where the edge over momentum comes from
+
+```{python}
+#| label: tbl-decomp
+#| tbl-cap: "Machine-learning books against the momentum book (unmanaged). Slope and alpha: regression of the model's gross monthly return on momentum's. Crash months: momentum's ten worst months. Bear market: the market's trailing 24-month return is negative (63 months)."
+d = ext_dec.reset_index()
+d["model"] = d["model"].map({"mom_plus_x": "Momentum + cross-industry", "lasso": "Lasso", "rf": "Random forest", "mean_ml": "Average of ML models"})
+d["Alpha (t)"] = d.apply(lambda r: f"{r['alpha vs momentum (% p.a., gross)']:.1f} ({r['alpha t']:.1f})", axis=1)
+d["Alpha without crash months (t)"] = d.apply(lambda r: f"{r['alpha without the 10 worst months (% p.a.)']:.1f} ({r['alpha t without']:.1f})", axis=1)
+d["Net edge over momentum (t)"] = d.apply(lambda r: f"{r['net edge over momentum (% p.a.)']:.1f} ({r['edge t']:.1f})", axis=1)
+table(d[["model", "slope on momentum", "Alpha (t)", "Alpha without crash months (t)", "Net edge over momentum (t)", "this model, same months (%)", "edge in bear market (% p.a.)", "edge otherwise (% p.a.)"]]
+      .rename(columns={"slope on momentum": "Slope", "this model, same months (%)": "Return in momentum's crash months (%)", "edge in bear market (% p.a.)": "Edge in bear markets", "edge otherwise (% p.a.)": "Edge otherwise"}),
+      {"Slope": "{:.2f}", "Return in momentum's crash months (%)": "{:.1f}", "Edge in bear markets": "{:.1f}", "Edge otherwise": "{:.1f}"})
+```
+
+The learned books are momentum books with a cushion. Their returns move with momentum's at a slope of 0.72–0.80, and in momentum's ten worst months (average `{python} f"{ext_dec.loc['lasso', 'momentum' + chr(39) + 's 10 worst months (%)']:.1f}"`%) the lasso loses `{python} f"{-ext_dec.loc['lasso', 'this model, same months (%)']:.1f}"`%, the forest `{python} f"{-ext_dec.loc['rf', 'this model, same months (%)']:.1f}"`%. Two readings follow. Measured as a gross alpha against momentum (before the extra trading costs), the lasso and forest keep 2–3% a year without those ten months (t of 2.0 and 2.4), so they are not scaled-down momentum. Measured as a plain difference in returns, the lasso beats momentum by `{python} f"{ext_dec.loc['lasso', 'net edge over momentum (% p.a.)']:.1f}"`% a year net of costs (t = `{python} f"{ext_dec.loc['lasso', 'edge t']:.1f}"`) and all of it, `{python} f"{ext_dec.loc['lasso', 'share of edge earned in those 10 months']:.0%}"`, is earned in those ten months. The edge is larger when the market has been falling (`{python} f"{ext_dec.loc['lasso', 'edge in bear market (% p.a.)']:.1f}"`% a year in the 63 bear-market months against `{python} f"{ext_dec.loc['lasso', 'edge otherwise (% p.a.)']:.1f}"`% otherwise), the pattern Daniel and Moskowitz (2016) describe for momentum crashes, but the difference between the two states has a two-sided p-value of `{python} f"{ext_dec.loc['lasso', 'bear minus other, p (two-sided)']:.2f}"`.
+
+## Do other industries' returns lead?
+
+Rapach, Strauss, Tu and Zhou (2019) report that lagged returns of other industries predict an industry's next return. This test uses our own design: for each of the 49 industries a separate elastic net predicts its next-month return relative to the average industry from all 49 industries' last-month returns (also relative to the average), estimated on an expanding window from 1940, refitted every 12 months with the penalty chosen by time-series cross-validation every 36. `xind` is the full forecast; `xlead` subtracts the industry's own training-sample average, so a permanently strong industry cannot pass as lead–lag.
+
+```{python}
+#| label: tbl-cross
+#| tbl-cap: "Cross-industry lead–lag alone and added to a signal (equal-weight sum of cross-sectional z-scores, nothing fitted). Net of 20 bp per unit traded. p: one-sided test of the Sharpe ratio against momentum."
+x = ext_x.reset_index()
+x["model"] = x["model"].map({"mom": "Momentum", "lasso": "Lasso", "xind": "Cross-industry, full forecast", "xlead": "Cross-industry, lead–lag part",
+                             "mom_plus_x": "Momentum + lead–lag", "lasso_plus_x": "Lasso + lead–lag"})
+x["IC (t)"] = x.apply(lambda r: f"{r['IC']:.3f} ({r['IC t']:.1f})", axis=1)
+x["Alpha (t)"] = x.apply(lambda r: f"{r['alpha (% p.a.)']:.1f} ({r['alpha t']:.1f})", axis=1)
+x["p"] = x["p (Sharpe > momentum)"]
+table(x[["model", "IC (t)", "net (% p.a.)", "Sharpe", "turnover / yr", "Alpha (t)", "p"]],
+      {"net (% p.a.)": "{:.1f}", "Sharpe": "{:.2f}", "turnover / yr": "{:.0f}", "p": "{:.2f}"})
+```
+
+The lead–lag part ranks industries significantly (IC `{python} f"{ext_x.loc['xlead', 'IC']:.3f}"`, t = `{python} f"{ext_x.loc['xlead', 'IC t']:.1f}"`) but is not tradable alone: it turns the book over `{python} f"{ext_x.loc['xlead', 'turnover / yr']:.0f}"` times a year and loses `{python} f"{-ext_x.loc['xlead', 'net (% p.a.)']:.1f}"`% after costs. It is sparse, with `{python} f"{ext_j['mean_active_predictors']:.1f}"` of 49 predictors active on average, so it is not the diffuse spillover the idea suggests. Added to momentum, it raises the IC by `{python} f"{ext_j['ic_gain']:.3f}"` (t = `{python} f"{ext_j['ic_gain_t']:.1f}"`) and the net Sharpe ratio from `{python} f"{ext_x.loc['mom', 'Sharpe']:.2f}"` to `{python} f"{ext_x.loc['mom_plus_x', 'Sharpe']:.2f}"` (p = `{python} f"{ext_x.loc['mom_plus_x', 'p (Sharpe > momentum)']:.2f}"`), with a higher net Sharpe ratio in each of the three sub-periods (@tbl-cross-periods) and, once volatility-managed, `{python} f"{vm.loc[('mom_plus_x', 'vol-managed'), 'Sharpe']:.2f}"` against `{python} f"{vm.loc[('mom', 'vol-managed'), 'Sharpe']:.2f}"` for momentum. Against that, the combination does not beat the lasso (`{python} f"{ext_x.loc['lasso', 'Sharpe']:.2f}"`), adding the signal to the lasso lowers its Sharpe ratio, and the managed-Sharpe comparison with momentum is not significant (p = 0.24). The evidence that other industries' returns carry information beyond momentum is suggestive and no stronger.
+
+```{python}
+#| label: tbl-cross-periods
+#| tbl-cap: "Net Sharpe ratio (rank correlation in brackets) by sub-period"
+q = ext_xp.copy()
+q["cell"] = q.apply(lambda r: f"{r['net Sharpe']:.2f} ({r['IC']:.3f})", axis=1)
+q = q.pivot(index="model", columns="period", values="cell").loc[["mom", "lasso", "xlead", "mom_plus_x"]].reset_index()
+q["model"] = q["model"].map({"mom": "Momentum", "lasso": "Lasso", "xlead": "Cross-industry, lead–lag part", "mom_plus_x": "Momentum + lead–lag"})
+Markdown(q.rename(columns={"model": "Model"}).to_markdown(index=False, disable_numparse=True))
+```
+
 # The current ranking
 
 ```{python}
@@ -214,9 +296,15 @@ Machine learning finds the industry momentum that finance already knew about. Th
 
 For an investor the use is a modest tilt, held for years rather than traded monthly, that gives up little when implemented through momentum itself. The more general lesson is the one that recurs across these studies: in noisy financial data, flexible models mostly add variance, and the benchmark worth beating is the simple rule that practitioners already use.
 
+The follow-up experiments sharpen this. Volatility-managing lifts momentum to the lasso's Sharpe ratio, the learned books earn their edge over a plain momentum book mostly in momentum's worst months, and the information in other industries' lagged returns improves momentum only marginally and cannot be traded alone.
+
 **Limitations.** The portfolios are value-weighted industries as defined by Kenneth French, not tradable funds, and returns are before taxes and shorting costs. The alphas control for the market, size and value but not for a market-wide momentum factor, which is why the momentum portfolio shows a positive alpha. Book-to-market is annual. Kenneth French reconstitutes the industry portfolios each June. Results rest on one market.
 
 # References {.unnumbered}
+
+Barroso, P. and Santa-Clara, P. (2015). Momentum has its moments. *Journal of Financial Economics* 116(1).
+
+Daniel, K. and Moskowitz, T. (2016). Momentum crashes. *Journal of Financial Economics* 122(2).
 
 Gu, S., Kelly, B. and Xiu, D. (2020). Empirical asset pricing via machine learning. *Review of Financial Studies* 33(5).
 
@@ -228,11 +316,15 @@ Memmel, C. (2003). Performance hypothesis testing with the Sharpe ratio. *Financ
 
 Moskowitz, T. and Grinblatt, M. (1999). Do industries explain momentum? *Journal of Finance* 54(4).
 
+Rapach, D., Strauss, J., Tu, J. and Zhou, G. (2019). Industry return predictability: a machine learning approach. *Journal of Financial Data Science* 1(3).
+
 # Appendix: reproducing the results {.unnumbered}
 
 ```bash
 pip install -r requirements.txt
 python run_ind.py        # all methods, about 7 minutes on a 2-core laptop
 python analyze_ind.py    # scoreboards, sub-periods, costs, current ranking
+python run_crossind.py   # cross-industry lead-lag forecasts, a few minutes
+python analyze_extensions.py   # follow-up experiments
 quarto render report.qmd
 ```

@@ -11,6 +11,9 @@ Thirteen methods rank Kenneth French's 49 US industry portfolios every month fro
 - **Costs take most of the profit.** Long the top ten, short the bottom ten, rebalanced monthly, with 20 basis points per unit traded: the lasso earns 5.2% a year (Sharpe 0.36), random forest 4.7%, momentum 3.8%. The machine-learning portfolios trade 13–20 times their exposure a year, momentum 11.
 - **The skill faded.** IC was 0.066–0.076 in 1980–1999 and 0.024–0.038 since 2000.
 - **Two textbook signals fail.** Value (book-to-market) has no ranking power (IC 0.000). Short-term reversal has the wrong sign at the industry level: last month's winners keep winning, and betting on reversal loses money.
+- **Volatility-managing fixes momentum, not the learners.** Scaling each month's book to a 10% volatility target lifts momentum's net Sharpe ratio from 0.24 to 0.34 (p = 0.09) and cuts its maximum drawdown from 57% to 37%. The lasso (0.36 → 0.34) and the forest do not gain. Managed momentum is within 0.04 of the managed lasso in all nine window and cap variants.
+- **The learners' edge over momentum sits in momentum's worst months.** Their books move with momentum at a slope of 0.72–0.80 and lose 7–11% in momentum's ten worst months (momentum: 14.7%). The lasso beats momentum by 1.3% a year net (t = 1.0) and all of it is earned in those ten months; as a gross alpha against momentum it keeps 2.1% a year without them (t = 2.0).
+- **Other industries' lagged returns add little.** A cross-industry elastic net ranks significantly (IC 0.032, t = 4.3) but turns the book over 26 times a year and loses money after costs; on average 2.3 of 49 predictors are active. Added to momentum it lifts the net Sharpe ratio from 0.24 to 0.35 (p = 0.06), higher in all three sub-periods, but it does not improve on the lasso. The follow-up tests are not adjusted for multiple testing.
 - **Latest ranking (end of August 2026):** top five are computers, electronic equipment and chips, machinery, precious metals and metal mining; bottom five are consumer goods, entertainment, medical equipment, paper and apparel. It will be scored when Kenneth French publishes September.
 
 ## Design
@@ -26,6 +29,9 @@ Expanding window, refitted every 12 months (linear models) or 36 months (trees a
 | `ind_eval.py` | Information coefficients, long–short portfolios with costs, Sharpe and alpha tests |
 | `run_ind.py` | Runs the forecasts, saves `results/forecasts.csv` |
 | `analyze_ind.py` | Builds every table and number in the report |
+| `run_crossind.py` | Cross-industry lead-lag forecasts, saves `results/crossind_forecasts.csv` |
+| `ind_extensions.py` | Volatility-managed books, signal combinations, bear-market flag |
+| `analyze_extensions.py` | The three follow-up experiments, saves `results/extensions_*.csv` |
 | `report.qmd` | The report |
 | `data/` | Raw inputs and their sources |
 | `tests/` | Timing, no-look-ahead and portfolio checks |
@@ -36,6 +42,8 @@ Expanding window, refitted every 12 months (linear models) or 36 months (trees a
 pip install -r requirements.txt
 python run_ind.py          # about 7 minutes on a 2-core laptop
 python analyze_ind.py
+python run_crossind.py     # about 10 minutes on a 2-core laptop
+python analyze_extensions.py
 quarto render report.qmd
 pytest -q
 ```
