@@ -1,0 +1,20 @@
+{
+  "months": 559,
+  "first": "1980-01-01",
+  "last": "2026-07-01",
+  "ranking_date": "2026-08-01",
+  "top5": [
+    "Computers",
+    "Electronic equipment and chips",
+    "Machinery",
+    "Precious metals",
+    "Metal mining"
+  ],
+  "bottom5": [
+    "Consumer goods",
+    "Entertainment",
+    "Medical equipment",
+    "Paper",
+    "Apparel"
+  ]
+}
