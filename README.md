@@ -34,6 +34,10 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 
 **[Forecasting US credit spreads with machine learning](https://speedkelvyn.github.io/Speedy.github.io/projects/credit-spreads/)** Thirteen models (lasso to neural networks) and 145 real-time predictors, 1995–2026. A 27% R² on Moody's monthly Baa spread turns out to be an artifact of time-averaging; on tradable spreads the random walk wins, but a pre-specified momentum rule raises the Sharpe ratio of credit from 0.39 to 0.66 (p = 0.02). Code and data in [`projects/credit-spreads`](projects/credit-spreads).
 
+**[Forecasting stock-market volatility with machine learning](https://speedkelvyn.github.io/Speedy.github.io/projects/volatility/)** Nineteen forecasters, 2000–2026. The month-end VIX is the best single predictor (R²_OS 52% against 43% for HAR) but only since 2013; GJR-GARCH wins on QLIKE; and no volatility-managed portfolio raises the Sharpe ratio significantly (0.49 to 0.52–0.59). Code and data in [`projects/volatility`](projects/volatility).
+
+**[Predicting US recessions and stock-market stress with machine learning](https://speedkelvyn.github.io/Speedy.github.io/projects/recession-risk/)** Nine probability models and about 150 real-time indicators, 1993–2025, with recession labels used only once the NBER would have announced them. A yield-curve probit (AUC 0.85) is not beaten by any richer model; the 2022–24 inversion gave a 90% signal for 21 months and no recession followed. Code and data in [`projects/recession-risk`](projects/recession-risk).
+
 **[Can models beat the random walk in exchange rates?](https://speedkelvyn.github.io/Exchange-Rate/)** Out-of-sample forecasts for daily USD/JPY (AR-GARCH) and a monthly panel of six currencies (Elastic Net, neural network, ensemble) with macro fundamentals and global risk. No model beats the random walk overall, but the neural network does in high-VIX months (Clark-West p = 0.04). Code and data in [Exchange-Rate](https://github.com/Speedkelvyn/Exchange-Rate).
 
 ## Repository layout
@@ -47,6 +51,8 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 │       └── web/             Browser engine (model.js), page template and build_page.py
 ├── projects/
 │   ├── credit-spreads/      Credit-spread forecasting study: 13 models, FRED-MD, timing rule
+│   ├── volatility/          Volatility forecasting study: 19 forecasters, VIX, volatility-managed portfolio
+│   ├── recession-risk/      Recession and bear-market probabilities: 9 models, real-time labels
 │   ├── fx-forecasting/      Redirect to the exchange-rate study (repo: Exchange-Rate)
 │   └── inboxzero/           Redirect to the Gmail triage tool (repo: Inbox-Zero)
 └── valuation-ledger/        Redirect to the Valuation Ledger course (repo: Valuation-gem)

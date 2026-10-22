@@ -1,0 +1,291 @@
+---
+title: "Predicting US Recessions and Stock-Market Stress with Machine Learning"
+subtitle: "Nine probability models, 32 years out of sample, and why three recessions cannot settle the contest"
+description-meta: "Probit, lasso, random-forest and boosting models for the probability of a US recession or a 20% stock-market fall within 12 months, tested in real time since 1993: the yield curve alone scores an AUC of 0.85, nothing beats it, and the curve says nothing about bear markets."
+author: "Kelvin Afful"
+date: last-modified
+date-format: "D MMMM YYYY"
+output-file: index.html
+abstract: |
+  I estimate the probability that the United States enters a recession, or that the stock market falls at least 20%, within the next twelve months, using nine models from a one-variable yield-curve probit (Estrella and Mishkin 1998) to a lasso logit, random forest and gradient boosting on about 150 real-time indicators. Every probability uses only data, and only recession labels, that were available at the time: the National Bureau of Economic Research dates a recession months after it begins, so a month joins the training set 24 months later. The headline is a negative result. The yield curve alone separates pre-recession months from calm ones with an AUC of 0.85; adding the excess bond premium, credit spreads, labour-market data or machine learning does not improve on it in a statistically meaningful way, and all models except the random forest are overconfident, scoring worse than simply quoting the historical frequency. The yield-curve inversion of 2022–24 held the curve-based probability above 90% for 21 months, and no recession followed. For stock-market bear markets the curve-based probability pointed the wrong way (AUC 0.21). Since only three recessions fall in the test period, no ranking of models here is reliable, which is itself the main finding. On the latest data the models put the chance of a recession within a year between under 1% and 13%, below the 15% historical frequency.
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    code-fold: true
+    code-summary: "Show code"
+    theme: cosmo
+    embed-resources: true
+    html-math-method: mathml
+    fig-align: center
+execute:
+  warning: false
+  message: false
+jupyter: python3
+---
+
+```{python}
+#| label: setup
+#| include: false
+import json
+import warnings
+
+import altair as alt
+import numpy as np
+import pandas as pd
+from IPython.display import Markdown
+
+import rec_data as D
+import rec_eval as E
+import rec_models as M
+
+warnings.filterwarnings("ignore")
+alt.renderers.enable("svg")
+alt.data_transformers.disable_max_rows()
+BLUE, ORANGE, GREY, GREEN, RED = "#1f4e79", "#e07b00", "#8c8c8c", "#2e7d32", "#c62828"
+
+prob = pd.read_csv("results/probabilities.csv", parse_dates=["date"])
+H = json.load(open("results/headline.json"))
+SB = {t: pd.read_csv(f"results/scoreboard_{t.lower()}.csv").set_index("key") for t in ("RECESSION", "BEAR")}
+AL = {t: pd.read_csv(f"results/alarms_{t.lower()}.csv") for t in ("RECESSION", "BEAR")}
+LEADS = pd.read_csv("results/leads.csv")
+data = D.build_dataset()
+REC = data["recession"]
+pct = lambda v, d=0: f"{100 * v:.{d}f}%"  # noqa: E731
+
+
+def table(df: pd.DataFrame, fmt: dict) -> Markdown:
+    d = df.copy()
+    for c, f in fmt.items():
+        d[c] = d[c].map(lambda v, f=f: "–" if pd.isna(v) else f.format(v + 0.0).replace("-0.0", "0.0"))
+    return Markdown(d.to_markdown(index=False, disable_numparse=True))
+
+
+def fc(t):
+    return prob[prob["target"] == t].reset_index(drop=True)
+```
+
+# The question
+
+Two questions drive allocation between risky and safe assets: will the economy slip into recession, and will the stock market suffer a deep fall? Both are rare events with long, noisy warning times, which makes them hard to forecast and easy to oversell. The best-known indicator is the slope of the Treasury yield curve: an inverted curve, with short rates above long rates, has historically preceded US recessions (Estrella and Mishkin 1998). Later work added credit conditions, in particular the excess bond premium, the part of corporate spreads not explained by default risk (Gilchrist and Zakrajšek 2012; Favara et al. 2016), and machine-learning studies suggest that many predictors and flexible models should help further.
+
+This study asks whether they do when the test is as strict as an investor would face. The data are real time, the recession dates are only used once the NBER would have announced them, the probabilities are scored with measures that punish confident mistakes, and the uncertainty accounts for the fact that there are only a handful of recessions to learn from.
+
+# Design
+
+The design was fixed before any out-of-sample result was computed. All models are reported, including those that fail.
+
+**Targets.** At the end of each month $t$:
+
+| Target | Definition |
+|---|---|
+| RECESSION | 1 if an NBER recession begins in any of the next 12 months. Defined only for months when the economy is not already in recession, so persistence cannot flatter a model. |
+| BEAR | 1 if the CRSP value-weighted US stock market (total return) falls at least 20% below its month-$t$ level at some point in the next 12 months. |
+
+**Predictors (about 150).** The slope of the yield curve (10-year minus 3-month and minus 2-year Treasury yields); credit conditions (Baa minus 10-year Treasury spread, the Gilchrist–Zakrajšek excess bond premium and spread); the Chicago Fed financial-conditions indexes, the St. Louis Fed stress index and the VIX; bank lending standards and delinquencies; the 126 series of FRED-MD (McCracken and Ng 2016) made stationary with the published codes, plus unemployment above its 12-month low (a Sahm-rule style gauge), employment growth, industrial-production growth, the stock market's last-year return and its distance from its peak.
+
+**Real-time rules.** Market series are monthly values (for the VIX, the term spread and the Baa spread, averages of daily data). Macro data, the excess bond premium and financial-conditions indexes are lagged one month for publication; quarterly bank data a full quarter. The NBER announces turning points 4 to 21 months after the fact, so a recession label joins the training set only 24 months later; bear-market labels join after the 12-month window closes. A predictor enters only once it has five years of history; missing values are imputed, outliers winsorised and predictors standardised using the training window alone. Forecasts begin in January 1980, and results are reported from the first month in which all nine models can be estimated (the yield-curve series starts in 1982, so this is 1993 for recessions).
+
+**Models.**
+
+| Model | Specification |
+|---|---|
+| Base rate | The share of past months followed by the event: no information about today |
+| Probit: yield curve | 10y–3m slope (Estrella and Mishkin 1998) |
+| Probit: curve + excess bond premium | Adds the EBP (Favara et al. 2016) |
+| Probit: + Baa spread and financial conditions | Adds the Baa spread and the Chicago Fed index |
+| Probit: + labour market and output | Adds unemployment vs its 12-month low, employment and production growth |
+| Lasso logit | L1-penalised logit on all predictors, penalty by time-series cross-validation |
+| Random forest | 500 trees, minimum leaf 10, $\sqrt{p}$ predictors per split |
+| Gradient boosting | Histogram boosting, depth 3, early stopping |
+| Average | Of the richest probit, the lasso, the forest and boosting |
+
+Probits are re-estimated every month; the machine-learning models every January.
+
+**Scoring.** Three measures, none of which needs a threshold. The *AUC* is the chance a randomly chosen pre-recession month receives a higher probability than a calm month (0.5 is a coin flip). The *log score* is the average log-probability given to what happened, which punishes confident misses severely. The *Brier skill* is one minus the model's mean squared probability error divided by that of the base rate, so a negative number means the model is worse than quoting the historical frequency. Because event windows overlap and there are very few independent episodes, confidence intervals come from a moving-block bootstrap with 24-month blocks, never from treating months as independent.
+
+# Results: recessions
+
+## The scoreboard
+
+```{python}
+#| label: tbl-recession
+#| tbl-cap: "Probability of a US recession within 12 months, tested out of sample. Sample: months for which every model is available. AUC with 90% block-bootstrap interval; last column: share of bootstrap draws in which the model's AUC is not above the yield-curve-only probit's."
+r = SB["RECESSION"].reset_index()
+r["AUC (90% interval)"] = r.apply(lambda x: f"{x['AUC']:.2f} ({x['AUC low']:.2f}–{x['AUC high']:.2f})", axis=1)
+r.loc[r["key"] == "base", "AUC (90% interval)"] = "0.50"
+table(r[["Model", "AUC (90% interval)", "Log score", "Brier skill (%)", "p (AUC > curve-only probit)"]],
+      {"Log score": "{:.3f}", "Brier skill (%)": "{:.0f}", "p (AUC > curve-only probit)": "{:.2f}"})
+```
+
+```{python}
+#| include: false
+R = SB["RECESSION"]
+s0, s1 = H["RECESSION"]["sample_start"][:4], H["RECESSION"]["sample_end"][:4]
+best = R.drop(index=["base"])["AUC"].idxmax()
+worst_brier = R["Brier skill (%)"].idxmin()
+```
+
+The sample runs from `{python} f"{s0}"` to `{python} f"{s1}"`, `{python} f"{H['RECESSION']['months']}"` labelled months of which `{python} f"{H['RECESSION']['event_months']}"` fall in the twelve months before a recession, in three episodes (2001, 2008 and 2020). Four conclusions follow.
+
+*The yield curve is hard to beat.* One variable gives an AUC of `{python} f"{R.loc['probit_ts', 'AUC']:.2f}"`. The highest AUC in the table is `{python} f"{R.loc[best, 'AUC']:.3f}"` (`{python} M.NAMES[best]`), and no model beats the curve-only probit with any confidence (the final column: the lowest value is `{python} f"{R['p (AUC > curve-only probit)'].min():.2f}"`, where 0.05 or below would indicate an improvement). The richer probits and the machine-learning models land between `{python} f"{R.drop(index=['base', 'probit_ts', 'probit_ebp'])['AUC'].min():.2f}"` and `{python} f"{R.drop(index=['base', 'probit_ts', 'probit_ebp'])['AUC'].max():.2f}"`. The intervals are wide, `{python} f"{R.loc['probit_ts', 'AUC low']:.2f}"` to `{python} f"{R.loc['probit_ts', 'AUC high']:.2f}"` even for the curve, and every model sits inside every other model's interval.
+
+*More information does not help, because the curve already carries it.* The variables the forest and the lasso rely on most are not exotic: they are spreads between long-term yields and the policy rate, the yield curve in other forms (@fig-importance). The machine learning mostly rediscovers the curve and then adds noise.
+
+*Most models are overconfident.* Every probit and the lasso and boosting have negative Brier skill: they would have been beaten by announcing the historical frequency every month. The reason is visible in the next figure. The worst case is `{python} M.NAMES[worst_brier]` at `{python} f"{R.loc[worst_brier, 'Brier skill (%)']:.0f}"`%. Only the random forest, whose averaging shrinks its probabilities, has positive skill (`{python} f"{R.loc['rf', 'Brier skill (%)']:.1f}"`%) and the best log score. The model that ranks best (highest AUC) is therefore not the one to trust for the size of the probability.
+
+*A longer sample does not change the picture.* The lasso, forest and boosting can be estimated from 1980, and from 1990 they give AUCs of 0.82, 0.82 and 0.85 (log scores −0.61, −0.32 and −0.49), the same as above.
+
+## Probabilities through time
+
+```{python}
+#| label: fig-paths
+#| fig-cap: "Probability of a recession within 12 months. Grey bands: NBER recessions. The yield-curve probit (blue) stayed above 90% from January 2023 to September 2024, and no recession followed."
+f = fc("RECESSION")
+f = f[f["date"] >= "1993-01-01"]
+keep = {"probit_ts": "Probit: yield curve", "probit_ebp": "Probit: curve + excess bond premium", "rf": "Random forest", "base": "Base rate"}
+long = f.melt(id_vars="date", value_vars=list(keep), var_name="key", value_name="Probability")
+long["Model"] = long["key"].map(keep)
+flag = REC.astype(int)
+run = (flag.diff().fillna(0) != 0).cumsum()
+bands = pd.DataFrame(
+    [{"start": g.index.min(), "end": g.index.max() + pd.offsets.MonthEnd(0)} for _, g in flag[flag == 1].groupby(run[flag == 1])]
+)
+bands = bands[bands["start"] >= "1993-01-01"]
+shade = alt.Chart(bands).mark_rect(color=GREY, opacity=0.3).encode(x="start:T", x2="end:T")
+lines = alt.Chart(long.dropna()).mark_line(strokeWidth=1.5).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%Y")),
+    y=alt.Y("Probability:Q", axis=alt.Axis(format="%"), scale=alt.Scale(domain=[0, 1])),
+    color=alt.Color("Model:N", scale=alt.Scale(domain=list(keep.values()), range=[BLUE, ORANGE, GREEN, GREY]), legend=alt.Legend(orient="bottom", title=None, columns=2)),
+    strokeDash=alt.condition(alt.datum.Model == "Base rate", alt.value([4, 3]), alt.value([1, 0])),
+)
+(shade + lines).properties(width=660, height=300)
+```
+
+Two episodes explain the table. Before the 2001 and 2008 recessions the curve flattened or inverted, and the probit climbed. In 2022–24 the curve inverted deeply and for a long time, and the same rule produced probabilities of 90% and above for 21 months (January 2023 to September 2024) without a recession, the single largest source of the overconfidence above. The pandemic recession of 2020 was a shock that no model had an early warning for: six months before, the models assigned it between 23% and 61%, which is no better than a general sense of fragility. The forest is more cautious throughout, which is why it scores best on the log score.
+
+## How much warning?
+
+```{python}
+#| label: tbl-leads
+#| tbl-cap: "Probability given k months before each recession began, by model. 'First month' is the first month the NBER counts as recession."
+L = LEADS[LEADS["key"].isin(["probit_ts", "probit_ebp", "rf"]) & LEADS["Recession starts"].isin(["Apr 2001", "Jan 2008", "Mar 2020"])].copy()
+L["Model"] = L["key"].map(M.NAMES)
+L = L.rename(columns={"Recession starts": "First month"})
+cols = ["12 months before", "9 months before", "6 months before", "3 months before"]
+for c in cols:
+    L[c] = L[c].map(lambda v: f"{100 * v:.0f}%")
+Markdown(L[["Model", "First month", *cols]].to_markdown(index=False, disable_numparse=True))
+```
+
+The curve-only probit gives its clearest signal a year or more ahead of 2008 (73% twelve months before) and fades to 21% three months before the recession as the curve steepens, even though the downturn is about to begin: the curve's warning comes early and its timing is loose. The excess bond premium added the most in 2001 (81% nine months before, 99% at three) but nothing in 2008, when it stayed at 10–20% until the recession began, because credit stress arrived with the financial crisis itself.
+
+## Using the probabilities: alarms
+
+```{python}
+#| label: tbl-alarms
+#| tbl-cap: "What happens if an investor acts when the probability crosses a threshold. Same sample as the scoreboard."
+a = AL["RECESSION"]
+a = a[a["key"].isin(["probit_ts", "probit_ebp", "rf"]) & a["Threshold"].isin([0.2, 0.3, 0.5])].copy()
+a["Threshold"] = a["Threshold"].map(lambda v: f"{100 * v:.0f}%")
+table(a[["Model", "Threshold", "Months flagged (%)", "Pre-recession months caught (%)", "False alarms (% of flags)"]],
+      {"Months flagged (%)": "{:.0f}", "Pre-recession months caught (%)": "{:.0f}", "False alarms (% of flags)": "{:.0f}"})
+```
+
+At a 30% threshold the curve-only probit flags `{python} f"{AL['RECESSION'].query('key == \"probit_ts\" and Threshold == 0.3').iloc[0]['Months flagged (%)']:.0f}"`% of months, catches `{python} f"{AL['RECESSION'].query('key == \"probit_ts\" and Threshold == 0.3').iloc[0]['Pre-recession months caught (%)']:.0f}"`% of the pre-recession months and about seven in ten of its flags are false. That is an expensive alarm for a portfolio manager: a risk-off signal that is wrong most of the time, and each false alarm has a cost in the return given up while out of risky assets.
+
+## What the machine-learning models used
+
+```{python}
+#| label: fig-importance
+#| fig-cap: "Random-forest importance (averaged over the annual refits) for the recession target. FFM spreads are the difference between a market yield and the federal funds rate."
+imp = pd.read_csv("results/importance_top_recession.csv")
+names = {"md_T10YFFM": "10-year yield minus fed funds", "md_T5YFFM": "5-year yield minus fed funds", "md_AAAFFM": "Aaa yield minus fed funds",
+         "md_TB6SMFFM": "6-month bill minus fed funds", "md_T1YFFM": "1-year yield minus fed funds", "md_BAAFFM": "Baa yield minus fed funds",
+         "md_TB3SMFFM": "3-month bill minus fed funds", "md_COMPAPFFx": "Commercial paper minus fed funds", "TERM_10Y2Y": "10y–2y slope",
+         "md_M2REAL": "Real M2", "TERM_10Y3M": "10y–3m slope", "NFCI": "Financial conditions (NFCI)"}
+imp["Predictor"] = imp["predictor"].map(lambda p: names.get(p, p))
+alt.Chart(imp.head(10)).mark_bar(color=BLUE).encode(
+    x=alt.X("rf_importance:Q", title="Mean decrease in impurity"), y=alt.Y("Predictor:N", sort="-x", title=None)
+).properties(width=520, height=260)
+```
+
+Nine of the ten most important predictors are yield spreads of one kind or another. The lasso agrees: the 10-year minus fed funds spread is the one predictor it kept in every refit, with a negative coefficient (a higher spread means a lower recession probability). This is the yield-curve story reached from the data rather than assumed, and it explains why adding hundreds of variables buys nothing.
+
+# Results: stock-market bear markets
+
+```{python}
+#| label: tbl-bear
+#| tbl-cap: "Probability of a 20% stock-market fall within 12 months, tested out of sample. AUC below 0.5 means the model gave lower probabilities before bear markets than before calm months."
+b = SB["BEAR"].reset_index()
+b["AUC (90% interval)"] = b.apply(lambda x: f"{x['AUC']:.2f} ({x['AUC low']:.2f}–{x['AUC high']:.2f})", axis=1)
+b.loc[b["key"] == "base", "AUC (90% interval)"] = "0.50"
+table(b[["Model", "AUC (90% interval)", "Log score", "Brier skill (%)"]], {"Log score": "{:.3f}", "Brier skill (%)": "{:.0f}"})
+```
+
+```{python}
+#| include: false
+B = SB["BEAR"]
+```
+
+Stress in the stock market is much less predictable than recessions. The sample (`{python} f"{H['BEAR']['sample_start'][:4]}"`–`{python} f"{H['BEAR']['sample_end'][:4]}"`) has `{python} f"{H['BEAR']['event_months']}"` pre-bear months of `{python} f"{H['BEAR']['months']}"`. No model is reliably better than the base rate: the best log score is the lasso's, `{python} f"{B.loc['lasso', 'Log score']:.3f}"` against `{python} f"{B.loc['base', 'Log score']:.3f}"` for the base rate, a difference of the size one would expect from chance.
+
+The most striking number is the yield curve: its AUC is `{python} f"{B.loc['probit_ts', 'AUC']:.2f}"`, with a 90% interval of `{python} f"{B.loc['probit_ts', 'AUC low']:.2f}"` to `{python} f"{B.loc['probit_ts', 'AUC high']:.2f}"`, and the curve-only model never gave a probability above `{python} f"{prob[prob.target == 'BEAR']['probit_ts'].max():.0%}"`. Below 0.5 means that out of sample the curve ranked months in the wrong order. The relation changes sign between eras. In 1982–99 the months before a bear market had a steeper curve than calm months (2.4 against 1.8 percentage points), in 2000–12 a flatter one (1.5 against 2.0), and since 2013 a slightly steeper one again (1.1 against 0.9); the deep inversion of 2023–24 was followed by a rising market. A model fitted in one era therefore misleads in the next, and the conclusion is not that the curve is a contrary indicator but that its link to equity prices is unstable. The 1982–99 figures rest on only seven pre-bear months.
+
+# Where things stand
+
+```{python}
+#| label: tbl-now
+#| tbl-cap: "Latest probabilities, from the most recent month for which every input is published, against the historical frequency of each event."
+lat = {t: H[t]["latest"] for t in ("RECESSION", "BEAR")}
+rows = []
+for m in M.MODELS:
+    rows.append({"Model": M.NAMES[m], "Recession within 12 months": pct(lat["RECESSION"][m], 0 if lat["RECESSION"][m] >= 0.1 else 1),
+                 "20% market fall within 12 months": pct(lat["BEAR"][m], 0 if lat["BEAR"][m] >= 0.1 else 1)})
+Markdown(pd.DataFrame(rows).to_markdown(index=False, disable_numparse=True))
+```
+
+The latest complete month is `{python} f"{H['RECESSION']['latest_date'][:7]}"`. Recession probabilities range from `{python} pct(min(v for k, v in lat['RECESSION'].items() if k != 'base'), 1)` to `{python} pct(max(v for k, v in lat['RECESSION'].items() if k != 'base'), 0)`, all below the `{python} pct(lat['RECESSION']['base'], 0)` frequency of the past, and the 10-year minus 3-month slope has steepened to `{python} f"{H['inputs_latest']['TERM_10Y3M']:.2f}"` percentage points with the excess bond premium negative (`{python} f"{H['inputs_latest']['EBP']:.2f}"`), meaning credit markets are pricing less risk than fundamentals imply. Bear-market probabilities are between `{python} pct(min(v for k, v in lat['BEAR'].items() if k != 'base'), 1)` and `{python} pct(max(v for k, v in lat['BEAR'].items() if k != 'base'), 0)` against a frequency of `{python} pct(lat['BEAR']['base'], 0)`. Given the track record above, the right reading is "no strong warning signal", not a forecast with a precise number: the most reliable of these indicators (the yield curve) is the one whose false alarms of 2022–24 were largest.
+
+```{python}
+#| label: fig-recent
+#| fig-cap: "Recession probability over the last three years (labels for these months are not yet known, since the 12-month windows have not closed)."
+r = fc("RECESSION")
+r = r[r["date"] >= "2023-01-01"].melt(id_vars="date", value_vars=["probit_ts", "probit_ebp", "rf", "base"], var_name="key", value_name="Probability")
+r["Model"] = r["key"].map(keep)
+alt.Chart(r.dropna()).mark_line(strokeWidth=1.6).encode(
+    x=alt.X("date:T", title=None, axis=alt.Axis(format="%b %Y")),
+    y=alt.Y("Probability:Q", axis=alt.Axis(format="%"), scale=alt.Scale(domain=[0, 1])),
+    color=alt.Color("Model:N", scale=alt.Scale(domain=list(keep.values()), range=[BLUE, ORANGE, GREEN, GREY]), legend=alt.Legend(orient="bottom", title=None, columns=2)),
+).properties(width=660, height=260)
+```
+
+# Conclusion
+
+Recession probabilities from a one-variable yield-curve model are about as good as those from nine models using 150 real-time indicators: an AUC of 0.85, a ranking that no richer model improves on with any statistical confidence. Machine learning adds one thing, caution (the random forest alone is better calibrated than the historical frequency), and it takes away another, the clean economic story of the curve. For stock-market bear markets, nothing here is reliably informative, and the curve's relationship even reverses.
+
+The more fundamental result concerns the evidence. A test period of three recessions cannot distinguish a good model from a lucky one, and published horse races of recession models that report a winner by the third decimal place overstate what the data can say. Any such forecast should be reported with its uncertainty, used as one input to a risk assessment rather than a trading trigger, and treated with suspicion when it rests on a relationship, such as the curve and equities, that has changed sign between eras.
+
+**Limitations.** Macro data are the latest vintage, not what was available in real time, apart from the publication lags applied; FRED-MD is revised, which if anything flatters the macro-heavy models. The term spread, Baa spread and VIX are monthly averages of daily data, slightly staler than month-end values. The yield-curve data begin in 1982, so the 1990 recession is out of reach of the probit models and the common sample has three recessions rather than four. The recession definition is the NBER's, not a statistical one, and recessions that begin from shocks outside the data (2020) are unforecastable by construction. Probabilities for months after September 2025 have no outcome yet.
+
+# References {.unnumbered}
+
+Estrella, A. and Mishkin, F. (1998). Predicting US recessions: financial variables as leading indicators. *Review of Economics and Statistics* 80(1).
+
+Favara, G., Gilchrist, S., Lewis, K. and Zakrajšek, E. (2016). Recession risk and the excess bond premium. *FEDS Notes*, Federal Reserve Board.
+
+Gilchrist, S. and Zakrajšek, E. (2012). Credit spreads and business cycle fluctuations. *American Economic Review* 102(4).
+
+McCracken, M. and Ng, S. (2016). FRED-MD: A monthly database for macroeconomic research. *Journal of Business & Economic Statistics* 34(4).
+
+Rudebusch, G. and Williams, J. (2009). Forecasting recessions: the puzzle of the enduring power of the yield curve. *Journal of Business & Economic Statistics* 27(4).
+
+# Appendix: reproducing the results {.unnumbered}
+
+```bash
+pip install -r requirements.txt
+python run_rec.py        # both targets, about 10 minutes on a 2-core laptop
+python analyze_rec.py    # scoreboards, alarms, lead times, headline numbers
+quarto render report.qmd
+```
