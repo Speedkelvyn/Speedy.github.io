@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Speedy Regression Tool</title>
+    <meta
+      name="description"
+      content="Run OLS, logit and probit regressions on a CSV file in the browser: coefficients, robust standard errors, odds ratios and diagnostic plots. The file never leaves your computer."
+    />
+    <meta property="og:title" content="Speedy Regression Tool" />
+    <meta
+      property="og:description"
+      content="OLS, logit and probit on any CSV file, in the browser. Coefficients, robust standard errors, odds ratios and diagnostic plots."
+    />
+    <meta property="og:type" content="website" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230b2545%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27Georgia,serif%27 font-size=%2720%27 font-weight=%27bold%27 text-anchor=%27middle%27 fill=%27white%27%3EK%3C/text%3E%3C/svg%3E"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <style>
+      :root {
+        --navy: #0b2545;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+          sans-serif;
+      }
+      .page-head {
+        background: var(--navy);
+        color: #fff;
+        padding: 1.5rem 0;
+        margin-bottom: 1.5rem;
+      }
+      .page-head a {
+        color: #cfe0f5;
+      }
+      .card {
+        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+      }
+      .card-header {
+        font-weight: 600;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 0.5rem 1.5rem;
+      }
+      .stat-grid div {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--bs-border-color);
+        padding: 0.15rem 0;
+      }
+      .stat-grid dt {
+        font-weight: 400;
+        color: var(--bs-secondary-color);
+      }
+      .stat-grid dd {
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+      }
+      .panel-title {
+        font-weight: 600;
+        margin: 0.25rem 0 0.5rem;
+      }
+      .scroll {
+        overflow: auto;
+        max-height: 22rem;
+      }
+      #plot {
+        min-height: 450px;
+      }
+      .table-sm td,
+      .table-sm th {
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page-head">
+      <div class="container">
+        <p class="mb-1 small"><a href="../../">← Kelvin Afful, portfolio</a></p>
+        <h1 class="h2 mb-1">Speedy Regression Tool</h1>
+        <p class="mb-0">
+          OLS, logit and probit on any CSV file. Everything runs in your browser; the file is never uploaded.
+        </p>
+      </div>
+    </header>
+
+    <main class="container pb-5">
+      <div class="d-flex justify-content-end mb-2">
+        <button id="darkModeToggle" type="button" class="btn btn-outline-secondary btn-sm">
+          Toggle dark mode
+        </button>
+      </div>
+
+      <div id="message" role="status" aria-live="polite"></div>
+
+      <section class="card" aria-labelledby="h-upload">
+        <div class="card-header" id="h-upload">1. Load data</div>
+        <div class="card-body">
+          <label for="csvFile" class="form-label">CSV file with a header row</label>
+          <div class="d-flex gap-2 flex-wrap">
+            <input
+              type="file"
+              id="csvFile"
+              class="form-control"
+              accept=".csv,text/csv"
+              style="max-width: 28rem"
+            />
+            <button id="sampleBtn" type="button" class="btn btn-outline-primary">Load sample data</button>
+          </div>
+          <p class="form-text mb-0">
+            Rows with a missing value in any selected variable are left out, never replaced by zero. Blank
+            cells and NA, N/A, NaN, null or “.” count as missing. The sample has monthly US data from 1973:
+            the chance a recession starts within 12 months, next month’s stock return, the yield-curve slope,
+            the excess bond premium and the Baa spread.
+          </p>
+        </div>
+      </section>
+
+      <section class="card d-none" id="varCard" aria-labelledby="h-vars">
+        <div class="card-header" id="h-vars">2. Select variables</div>
+        <div class="card-body">
+          <label for="dependentVar" class="form-label">Dependent variable (Y)</label>
+          <select id="dependentVar" class="form-select mb-3"></select>
+          <span class="form-label d-block" id="xLabel">Independent variables (X)</span>
+          <div id="independentVarsContainer" role="group" aria-labelledby="xLabel"></div>
+          <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addVarBtn">
+            + Add variable
+          </button>
+          <p class="form-text mb-0" id="excludedNote"></p>
+        </div>
+      </section>
+
+      <section class="card d-none" id="modelCard" aria-labelledby="h-model">
+        <div class="card-header" id="h-model">3. Choose model</div>
+        <div class="card-body">
+          <label for="modelSelect" class="form-label">Model</label>
+          <select id="modelSelect" class="form-select mb-3">
+            <option value="ols">OLS (linear)</option>
+            <option value="logit">Logit (binary 0/1 outcome)</option>
+            <option value="probit">Probit (binary 0/1 outcome)</option>
+          </select>
+          <div class="form-check mb-3" id="robustWrap">
+            <input class="form-check-input" type="checkbox" id="robustSE" />
+            <label class="form-check-label" for="robustSE">
+              Heteroskedasticity-robust standard errors (HC1, as Stata’s <code>, robust</code>)
+            </label>
+          </div>
+          <button id="runBtn" type="button" class="btn btn-success w-100">Run regression</button>
+        </div>
+      </section>
+
+      <section class="card d-none" id="datasetOverviewCard" aria-labelledby="h-data">
+        <div class="card-header" id="h-data">Dataset overview</div>
+        <div class="card-body">
+          <div class="dashboard">
+            <div>
+              <div class="panel-title">First 5 rows</div>
+              <div class="scroll">
+                <table class="table table-sm table-striped table-bordered" id="firstRowsTable">
+                  <thead></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <div class="panel-title">Descriptive statistics (numeric columns)</div>
+              <div class="scroll">
+                <table class="table table-sm table-striped table-bordered" id="descStatsTable">
+                  <thead>
+                    <tr>
+                      <th scope="col">Variable</th>
+                      <th scope="col" class="num">N</th>
+                      <th scope="col" class="num">Mean</th>
+                      <th scope="col" class="num">Std. dev.</th>
+                      <th scope="col" class="num">Min</th>
+                      <th scope="col" class="num">Max</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="panel-title mt-3">Missing values</div>
+              <div class="scroll">
+                <table class="table table-sm table-striped table-bordered" id="missingTable">
+                  <thead>
+                    <tr>
+                      <th scope="col">Variable</th>
+                      <th scope="col">Type</th>
+                      <th scope="col" class="num">Filled</th>
+                      <th scope="col" class="num">Missing</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <p class="small mt-2 mb-0" id="completeCase"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card d-none" id="resultsCard" aria-labelledby="h-results">
+        <div class="card-header d-flex justify-content-between align-items-center" id="h-results">
+          <span>Regression results</span>
+          <button id="downloadBtn" type="button" class="btn btn-outline-secondary btn-sm">
+            Download table (CSV)
+          </button>
+        </div>
+        <div class="card-body">
+          <p class="fw-semibold" id="resultTitle"></p>
+          <div id="resultNotes"></div>
+          <dl class="stat-grid" id="statGrid"></dl>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped" id="coefTable">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="small text-secondary mb-0" id="coefNote"></p>
+        </div>
+      </section>
+
+      <section class="card d-none" id="plotCard" aria-labelledby="h-plot">
+        <div class="card-header" id="h-plot">Diagnostic plots</div>
+        <div class="card-body">
+          <label for="plotSelect" class="form-label">Plot</label>
+          <select id="plotSelect" class="form-select mb-3">
+            <option value="actualFitted">Actual vs. fitted</option>
+            <option value="residualsFitted">Residuals vs. fitted</option>
+            <option value="qq">Normal Q-Q plot of residuals</option>
+            <option value="histResiduals">Histogram of residuals</option>
+          </select>
+          <div id="plot"></div>
+        </div>
+      </section>
+    </main>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"
+      integrity="sha384-D/t0ZMqQW31H3az8ktEiNb39wyKnS82iFY52QPACM+IjKW3jDUhyIgh2PApRqJZs"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/jstat@1.9.6/dist/jstat.min.js"
+      integrity="sha384-7uGOMhLhjroTamet5l69PR8EGxKUyWZlZOFFDRymtVqIfsh4Hj7uZRctW67ZCdkD"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"
+      integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7"
+      crossorigin="anonymous"
+    ></script>
+    <script src="regression.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

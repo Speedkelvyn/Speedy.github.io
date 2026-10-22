@@ -40,6 +40,8 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 
 **[Ranking US industries with machine learning](https://speedkelvyn.github.io/Speedy.github.io/projects/industry-ranking/)** Thirteen models rank Kenneth French's 49 industries each month, 1980–2026, using only data available at the time. Lasso and random forests reach a rank correlation of 0.05 with the realised ranking, but 12-month momentum alone gets 0.044; the skill roughly halves after 1999, and after 20 basis points of trading costs the long-short Sharpe ratio is 0.2 to 0.4. Code and data in [`projects/industry-ranking`](projects/industry-ranking).
 
+**[Speedy Regression Tool](https://speedkelvyn.github.io/Speedy.github.io/tools/regression/)** OLS, logit and probit on any CSV file, run in the browser: robust standard errors, odds ratios, diagnostics and plots. The numerical core is tested against statsmodels. Code in [`tools/regression`](tools/regression).
+
 **[Can models beat the random walk in exchange rates?](https://speedkelvyn.github.io/Exchange-Rate/)** Out-of-sample forecasts for daily USD/JPY (AR-GARCH) and a monthly panel of six currencies (Elastic Net, neural network, ensemble) with macro fundamentals and global risk. No model beats the random walk overall, but the neural network does in high-VIX months (Clark-West p = 0.04). Code and data in [Exchange-Rate](https://github.com/Speedkelvyn/Exchange-Rate).
 
 ## Repository layout
@@ -58,6 +60,8 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 │   ├── industry-ranking/    Industry ranking study: 13 models on 49 industries, long-short portfolios
 │   ├── fx-forecasting/      Redirect to the exchange-rate study (repo: Exchange-Rate)
 │   └── inboxzero/           Redirect to the Gmail triage tool (repo: Inbox-Zero)
+├── tools/
+│   └── regression/          Browser regression tool: OLS, logit, probit, tested against statsmodels
 └── valuation-ledger/        Redirect to the Valuation Ledger course (repo: Valuation-gem)
 ```
 

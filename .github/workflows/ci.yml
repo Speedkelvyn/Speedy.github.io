@@ -14,10 +14,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install --prefix "$RUNNER_TEMP/js" jstat@1.9.6
       - run: pip install ruff pytest numpy pandas openpyxl scipy 'scikit-learn>=1.6,<1.10' statsmodels arch
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest -q valuations/engine/tests projects/credit-spreads/tests projects/volatility/tests projects/recession-risk/tests projects/industry-ranking/tests
+      - run: NODE_PATH="$RUNNER_TEMP/js/node_modules" pytest -q valuations/engine/tests projects/credit-spreads/tests projects/volatility/tests projects/recession-risk/tests projects/industry-ranking/tests tools/regression/tests
 
   html:
     name: Validate and format check (HTML)
