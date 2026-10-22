@@ -73,6 +73,11 @@ def zscore_sum(fc: pd.DataFrame, cols: list[str]) -> pd.Series:
     return sum(fc.groupby("date")[c].transform(z) for c in cols)
 
 
+def rank_sum(fc: pd.DataFrame, cols: list[str]) -> pd.Series:
+    """Add the cross-sectional percentile ranks of several forecasts: the outlier-proof alternative to `zscore_sum`."""
+    return sum(fc.groupby("date")[c].rank(pct=True) - 0.5 for c in cols)
+
+
 def bear_flag(mkt: pd.Series, months: int = 24) -> pd.Series:
     """True when the market's cumulative return over the trailing `months` months, up to and including month t, is negative.
 

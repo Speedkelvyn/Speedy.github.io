@@ -103,3 +103,11 @@ def test_bear_flag_uses_only_the_past_and_needs_a_full_window():
     changed = mixed.copy()
     changed.iloc[35:] = 0.5  # rewrite the future of month 34
     assert X.bear_flag(mixed, 24).iloc[:35].tolist() == X.bear_flag(changed, 24).iloc[:35].tolist()
+
+
+def test_rank_sum_is_bounded_and_keeps_a_single_ranking(fc):
+    r = X.rank_sum(fc, ["sig_a", "sig_b"])
+    assert r.abs().max() <= 1.0  # each percentile rank minus 0.5 lies in (-0.5, 0.5]
+    one = X.rank_sum(fc, ["sig_a"])
+    for _, g in fc.assign(r=one).groupby("date"):
+        assert g["sig_a"].rank().to_numpy() == pytest.approx(g["r"].rank().to_numpy())
