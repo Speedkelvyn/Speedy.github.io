@@ -7,7 +7,7 @@ date: last-modified
 date-format: "D MMMM YYYY"
 output-file: index.html
 abstract: |
-  Deciding which industries to overweight is a ranking problem: the level of the market does not matter, only which sectors will beat the others. I rank the 49 Kenneth French value-weighted US industry portfolios every month from January 1980 to August 2026 with thirteen methods, from single signals (momentum, reversal, value) to ridge, lasso, random forests, gradient boosting and neural networks fed twelve industry characteristics and five market-state variables, using only data available at the time. The models do rank industries: the average rank correlation between forecast and next month's relative return is 0.04 to 0.05, with Newey–West t-statistics of 3 to 4.6. But the simplest rule, last year's return skipping the latest month, achieves 0.044, and no machine-learning model improves on it significantly (the largest gain in rank correlation is 0.006, t = 1.1). The skill is concentrated in momentum, collapsed after 1999 (rank correlation 0.07 in 1980–1999, 0.02–0.04 since) and is expensive to trade: a portfolio long the top ten industries and short the bottom ten earns a net Sharpe ratio of 0.16 to 0.36 after 20 basis points per unit traded, and little at 40. The skill is a long-standing anomaly, not a new machine-learning discovery.
+  Deciding which industries to overweight is a ranking problem: the level of the market does not matter, only which sectors will beat the others. I rank the 49 Kenneth French value-weighted US industry portfolios every month from January 1980 to August 2026 with thirteen methods, from single signals (momentum, reversal, value) to ridge, lasso, random forests, gradient boosting and neural networks fed twelve industry characteristics and five market-state variables, using only data available at the time. The models do rank industries: the average rank correlation between forecast and next month's relative return is 0.04 to 0.05, with Newey–West t-statistics of 3 to 4.6. But the simplest rule, last year's return skipping the latest month, achieves 0.044, and no machine-learning model improves on it significantly (the largest gain in rank correlation is 0.006, t = 1.1). The skill is concentrated in momentum, weakened after 1999 (rank correlation 0.07 in 1980–1999, 0.02–0.04 since, although a formal break test cannot rule out a stable skill) and is expensive to trade: a portfolio long the top ten industries and short the bottom ten earns a net Sharpe ratio of 0.16 to 0.36 after 20 basis points per unit traded, and little at 40. The skill is a long-standing anomaly, not a new machine-learning discovery.
 format:
   html:
     toc: true
@@ -57,6 +57,10 @@ ext_dec = pd.read_csv("results/extensions_decomposition.csv").set_index("model")
 ext_x = pd.read_csv("results/extensions_crossind.csv").set_index("model")
 ext_xp = pd.read_csv("results/extensions_crossind_periods.csv")
 ext_j = json.load(open("results/extensions.json"))
+tim = pd.read_csv("results/timing_strategies.csv").set_index("strategy")
+tim_grid = pd.read_csv("results/timing_grid.csv")
+tim_j = json.load(open("results/timing.json"))
+brk = pd.read_csv("results/breaks.csv")
 N = M.NAMES
 
 
@@ -153,7 +157,7 @@ alt.Chart(t).mark_bar(color=BLUE).encode(
 ).properties(width=520, height=260)
 ```
 
-## The skill faded
+## The skill weakened
 
 ```{python}
 #| label: tbl-periods
@@ -203,7 +207,7 @@ The portfolios turn over `{python} f"{Bd.loc[['mom', 'lasso', 'rf', 'mean_ml'], 
 
 # Follow-up experiments
 
-The scoreboard leaves three questions open. The tests below were run on the saved forecasts after the main study was finished; their settings were fixed before each run and are stated here. They add about twenty p-values to the thirteen models above, none adjusted for multiple testing, so a p-value near 0.05 here is a lead to follow, not a finding.
+The scoreboard leaves five questions open. The tests below were run on the saved forecasts after the main study was finished; their settings were fixed before each run and are stated here. They add about forty p-values to the thirteen models above, none adjusted for multiple testing, so a p-value near 0.05 here is a lead to follow, not a finding.
 
 ## Does managing volatility fix the costs?
 
@@ -277,6 +281,58 @@ q["model"] = q["model"].map({"mom": "Momentum", "lasso": "Lasso", "xlead": "Cros
 Markdown(q.rename(columns={"model": "Model"}).to_markdown(index=False, disable_numparse=True))
 ```
 
+## Is complexity just volatility timing?
+
+Nagel (2025) shows that the return forecasts of ridge regressions on thousands of random features, the machine-learning timing models of Kelly, Malamud and Zhou (2024), behave like volatility-timed momentum. The momentum book offers a direct test: it has returns back to 1941 and a known benchmark, volatility-managing (@tbl-vol). Eight inputs known at the end of each month (the book's returns over 1, 3, 6 and 12 months, its log volatility over 6 and 12 months, the market's volatility and 12-month return) are expanded into `{python} f"{tim_j['random_features']:,}"` random Fourier features, against `{python} f"{tim_j['training_months_first']}"` training months at the first forecast in 1980 and `{python} f"{tim_j['training_months_last']:,}"` at the last. A ridge regression predicts next month's book return, and the book is scaled by the forecast. The kernel width (0.5) and ridge penalty (1) were fixed in advance; the grid of widths and penalties is robustness only. Every model is trained on past data only, and costs are 20 basis points per unit traded.
+
+```{python}
+#| label: tbl-timing
+#| tbl-cap: "Timing the momentum book, January 1980 – July 2026, net of 20 bp per unit traded. R²_OS: out-of-sample R² of the return forecast against the average past return. p: one-sided test that the Sharpe ratio exceeds volatility-managing."
+t = tim.reset_index()
+t["Alpha vs vol-managed (t)"] = t.apply(lambda r: "–" if r["strategy"] == "Volatility-managed" else f"{r['alpha vs vol-managed (% p.a.)']:.1f} ({r['alpha t']:.1f})", axis=1)
+table(t[["strategy", "net (% p.a.)", "vol (% p.a.)", "Sharpe", "max drawdown (%)", "turnover / yr", "R2_OOS (%)", "Alpha vs vol-managed (t)", "p (Sharpe > vol-managed)"]]
+      .rename(columns={"strategy": "Strategy", "R2_OOS (%)": "R²_OS (%)", "p (Sharpe > vol-managed)": "p"}),
+      {"net (% p.a.)": "{:.1f}", "vol (% p.a.)": "{:.1f}", "Sharpe": "{:.2f}", "max drawdown (%)": "{:.0f}", "turnover / yr": "{:.0f}", "R²_OS (%)": "{:.1f}", "p": "{:.2f}"})
+```
+
+```{python}
+#| include: false
+g_ = tim_grid.set_index(["kernel width", "ridge penalty"])
+heavy = g_.loc[(slice(None), 10000.0), "Sharpe"]
+light = g_.loc[(slice(None), 0.01), "Sharpe"]
+```
+
+The random-feature model does not time the book. Its forecasts of next month's return have an out-of-sample R² of `{python} f"{tim.loc['Random-feature ridge', 'R2_OOS (%)']:.1f}"`%, its Sharpe ratio is `{python} f"{tim.loc['Random-feature ridge', 'Sharpe']:.2f}"` against `{python} f"{tim.loc['Volatility-managed', 'Sharpe']:.2f}"` for volatility-managing and `{python} f"{tim.loc['Buy and hold', 'Sharpe']:.2f}"` for holding the book, and it trades `{python} f"{tim.loc['Random-feature ridge', 'turnover / yr']:.0f}"` times its exposure a year. A ridge regression on the same eight inputs without the random features does no better (`{python} f"{tim.loc['Linear ridge, same features', 'Sharpe']:.2f}"`), and scaling the book by its own trailing 12-month return loses money (`{python} f"{tim.loc['Trailing-return timing', 'Sharpe']:.2f}"`). Across the `{python} f"{len(tim_grid)}"` combinations of kernel width and penalty, the Sharpe ratio is at most `{python} f"{tim_grid['Sharpe'].max():.2f}"`, reached when the heaviest penalty turns the forecast into the average past return and the model holds the book; the lightest penalty, closest to the interpolating regime, gives between `{python} f"{light.min():.2f}"` and `{python} f"{light.max():.2f}"`.
+
+The positions are not a disguised version of volatility timing either: they correlate `{python} f"{tim_j['corr_position_vol_scale']:.2f}"` with the volatility-managing scale and `{python} f"{tim_j['corr_position_trailing_return']:.2f}"` with the book's trailing 12-month return, and the two together explain `{python} f"{100 * tim_j['r2_position_on_scale_and_trailing']:.0f}"`% of their variance. This does not refute Nagel's result: it is one specification fixed in advance, on eight inputs and 47 years of one book. It says that on this book the complexity finds nothing to time.
+
+What does carry timing value is the variance. Sizing the book by a constant mean divided by its trailing six-month variance, the textbook mean–variance position with no forecast at all, gives a Sharpe ratio of `{python} f"{tim.loc['Constant mean / variance', 'Sharpe']:.2f}"`, level with volatility-managing. Replacing the constant mean by the random-feature forecast lowers it to `{python} f"{tim.loc['Random-feature ridge / variance', 'Sharpe']:.2f}"`. The gain from managing volatility is a gain from the variance estimate, and the mean forecast subtracts from it.
+
+## Is the decline in skill a structural break?
+
+The sub-periods in @tbl-periods were chosen after seeing the data, so a test of the decline has to allow for the search over dates. Andrews' (1993) sup-Wald test looks for one break in the mean of a series at an unknown date in the middle 70% of the sample: it computes the Wald statistic for a change in the mean at every candidate month, using Newey–West errors, and takes the largest. Its null distribution is simulated (5% critical value `{python} f"{brk['5% critical value'].iloc[0]:.2f}"`). It is applied to the monthly rank correlation of each signal and to the net return of its long–short portfolio. Because the best break date is selected from about 400 candidates, the estimated size of the break is overstated; the last column gives the share of 300 simulated samples in which the 5% test rejects when the break is as estimated, with the noise resampled in blocks from the residuals.
+
+```{python}
+#| label: tbl-breaks
+#| tbl-cap: "Sup-Wald tests for a break in the mean, 559 months. Means in rank-correlation units, or in % a year for net returns. Fixed split: Wald test at December 1999, whose date was chosen after looking at the data."
+b_ = brk.copy()
+def fmt(v, name): return f"{v:.1f}" if name.startswith("Net") else f"{v:.3f}"
+b_["Mean before → after"] = b_.apply(lambda r: f"{fmt(r['mean before'], r['series'])} → {fmt(r['mean after'], r['series'])}", axis=1)
+b_["Best break (last month before)"] = b_["last month before break"]
+b_["Power"] = b_["power at this break"].map("{:.0%}".format)
+table(b_[["series", "sup-Wald", "p (simulated)", "Best break (last month before)", "Mean before → after", "fixed split p (chi2, 1 df)", "Power"]]
+      .rename(columns={"series": "Series", "p (simulated)": "p", "fixed split p (chi2, 1 df)": "Fixed split, p"}),
+      {"sup-Wald": "{:.1f}", "p": "{:.2f}", "Fixed split, p": "{:.2f}"})
+```
+
+```{python}
+#| include: false
+core = brk[brk["series"].isin(["IC: Momentum", "IC: Lasso", "IC: Random forest", "IC: Average of ML models"])]
+xl = brk.set_index("series").loc["IC: Cross-industry lead–lag"]
+```
+
+For momentum and the machine-learning signals the best break falls in 2002 and the mean rank correlation drops from about 0.07 to about 0.02–0.03, but the test does not reject a constant mean (p between `{python} f"{core['p (simulated)'].min():.2f}"` and `{python} f"{core['p (simulated)'].max():.2f}"`; the largest statistic, `{python} f"{core['sup-Wald'].max():.1f}"`, is below the critical value). Fixing the split at December 1999, as the sub-period table does, would give p-values of `{python} f"{core['fixed split p (chi2, 1 df)'].min():.2f}"`–`{python} f"{core['fixed split p (chi2, 1 df)'].max():.2f}"`, and the difference between the two columns is the price of choosing the date after looking. The test is also weak: if the break were as large as estimated it would be detected in only `{python} f"{core['power at this break'].min():.0%}"`–`{python} f"{core['power at this break'].max():.0%}"` of samples, so "no significant break" does not mean no break. The cross-industry lead–lag signal is the exception (break after `{python} xl['last month before break']`, p = `{python} f"{xl['p (simulated)']:.2f}"`, power `{python} f"{xl['power at this break']:.0%}"`), but it is one of nine series tested and its p-value is `{python} f"{min(1, 9 * xl['p (simulated)']):.2f}"` after a Bonferroni adjustment. The decline in skill is visible in every series and its timing is not pinned down; the data cannot separate a lasting loss of skill from a long weak stretch of a stable one.
+
 # The current ranking
 
 ```{python}
@@ -298,11 +354,13 @@ Machine learning finds the industry momentum that finance already knew about. Th
 
 For an investor the use is a modest tilt, held for years rather than traded monthly, that gives up little when implemented through momentum itself. The more general lesson is the one that recurs across these studies: in noisy financial data, flexible models mostly add variance, and the benchmark worth beating is the simple rule that practitioners already use.
 
-The follow-up experiments sharpen this. Volatility-managing lifts momentum to the lasso's Sharpe ratio, the learned books earn their edge over a plain momentum book mostly in momentum's worst months, and the information in other industries' lagged returns improves momentum only marginally and cannot be traded alone.
+The follow-up experiments sharpen this. Volatility-managing lifts momentum to the lasso's Sharpe ratio, the learned books earn their edge over a plain momentum book mostly in momentum's worst months, and the information in other industries' lagged returns improves momentum only marginally and cannot be traded alone. A random-feature timing model fails to beat simple volatility scaling, whose value lies in the variance estimate, and a break test cannot confirm that the decline in skill is permanent.
 
 **Limitations.** The portfolios are value-weighted industries as defined by Kenneth French, not tradable funds, and returns are before taxes and shorting costs. The alphas control for the market, size and value but not for a market-wide momentum factor, which is why the momentum portfolio shows a positive alpha. Book-to-market is annual. Kenneth French reconstitutes the industry portfolios each June. Results rest on one market.
 
 # References {.unnumbered}
+
+Andrews, D. (1993). Tests for parameter instability and structural change with unknown change point. *Econometrica* 61(4).
 
 Barroso, P. and Santa-Clara, P. (2015). Momentum has its moments. *Journal of Financial Economics* 116(1).
 
@@ -312,11 +370,15 @@ Gu, S., Kelly, B. and Xiu, D. (2020). Empirical asset pricing via machine learni
 
 Jegadeesh, N. and Titman, S. (1993). Returns to buying winners and selling losers: implications for stock market efficiency. *Journal of Finance* 48(1).
 
+Kelly, B., Malamud, S. and Zhou, K. (2024). The virtue of complexity in return prediction. *Journal of Finance* 79(1).
+
 McLean, R. D. and Pontiff, J. (2016). Does academic research destroy stock return predictability? *Journal of Finance* 71(1).
 
 Memmel, C. (2003). Performance hypothesis testing with the Sharpe ratio. *Finance Letters* 1.
 
 Moskowitz, T. and Grinblatt, M. (1999). Do industries explain momentum? *Journal of Finance* 54(4).
+
+Nagel, S. (2025). Seemingly virtuous complexity in return prediction. Working paper.
 
 Rapach, D., Strauss, J., Tu, J. and Zhou, G. (2019). Industry return predictability: a machine learning approach. *Journal of Financial Data Science* 1(3).
 
@@ -328,5 +390,7 @@ python run_ind.py        # all methods, about 7 minutes on a 2-core laptop
 python analyze_ind.py    # scoreboards, sub-periods, costs, current ranking
 python run_crossind.py   # cross-industry lead-lag forecasts, a few minutes
 python analyze_extensions.py   # follow-up experiments
+python analyze_timing.py       # random-feature timing of the momentum book, about 2 minutes
+python analyze_breaks.py       # sup-Wald break tests
 quarto render report.qmd
 ```
