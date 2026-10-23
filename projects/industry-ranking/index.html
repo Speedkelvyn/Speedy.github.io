@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Kelvin Afful">
-<meta name="dcterms.date" content="2026-10-21">
+<meta name="dcterms.date" content="2026-10-22">
 <meta name="description" content="Thirteen models rank 49 US industries each month using characteristics and market-state variables, tested in real time since 1980: lasso and random forests reach a rank correlation of 0.05, but simple 12-month momentum does almost as well, and costs of 20 basis points leave a long-short Sharpe ratio of 0.2 to 0.4.">
 
 <title>Ranking US Industries with Machine Learning</title>
@@ -3092,7 +3092,7 @@ vertical-align: -.125em;
   <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results"><span class="header-section-number">3</span> Results</a>
   <ul class="collapse">
   <li><a href="#the-scoreboard" id="toc-the-scoreboard" class="nav-link" data-scroll-target="#the-scoreboard"><span class="header-section-number">3.1</span> The scoreboard</a></li>
-  <li><a href="#the-skill-faded" id="toc-the-skill-faded" class="nav-link" data-scroll-target="#the-skill-faded"><span class="header-section-number">3.2</span> The skill faded</a></li>
+  <li><a href="#the-skill-weakened" id="toc-the-skill-weakened" class="nav-link" data-scroll-target="#the-skill-weakened"><span class="header-section-number">3.2</span> The skill weakened</a></li>
   <li><a href="#costs" id="toc-costs" class="nav-link" data-scroll-target="#costs"><span class="header-section-number">3.3</span> Costs</a></li>
   </ul></li>
   <li><a href="#follow-up-experiments" id="toc-follow-up-experiments" class="nav-link" data-scroll-target="#follow-up-experiments"><span class="header-section-number">4</span> Follow-up experiments</a>
@@ -3100,6 +3100,8 @@ vertical-align: -.125em;
   <li><a href="#does-managing-volatility-fix-the-costs" id="toc-does-managing-volatility-fix-the-costs" class="nav-link" data-scroll-target="#does-managing-volatility-fix-the-costs"><span class="header-section-number">4.1</span> Does managing volatility fix the costs?</a></li>
   <li><a href="#where-the-edge-over-momentum-comes-from" id="toc-where-the-edge-over-momentum-comes-from" class="nav-link" data-scroll-target="#where-the-edge-over-momentum-comes-from"><span class="header-section-number">4.2</span> Where the edge over momentum comes from</a></li>
   <li><a href="#do-other-industries-returns-lead" id="toc-do-other-industries-returns-lead" class="nav-link" data-scroll-target="#do-other-industries-returns-lead"><span class="header-section-number">4.3</span> Do other industries’ returns lead?</a></li>
+  <li><a href="#is-complexity-just-volatility-timing" id="toc-is-complexity-just-volatility-timing" class="nav-link" data-scroll-target="#is-complexity-just-volatility-timing"><span class="header-section-number">4.4</span> Is complexity just volatility timing?</a></li>
+  <li><a href="#is-the-decline-in-skill-a-structural-break" id="toc-is-the-decline-in-skill-a-structural-break" class="nav-link" data-scroll-target="#is-the-decline-in-skill-a-structural-break"><span class="header-section-number">4.5</span> Is the decline in skill a structural break?</a></li>
   </ul></li>
   <li><a href="#the-current-ranking" id="toc-the-current-ranking" class="nav-link" data-scroll-target="#the-current-ranking"><span class="header-section-number">5</span> The current ranking</a></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion"><span class="header-section-number">6</span> Conclusion</a></li>
@@ -3130,7 +3132,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">21 October 2026</p>
+      <p class="date">22 October 2026</p>
     </div>
   </div>
   
@@ -3140,7 +3142,7 @@ vertical-align: -.125em;
 <div>
   <div class="abstract">
     <div class="block-title">Abstract</div>
-    <p>Deciding which industries to overweight is a ranking problem: the level of the market does not matter, only which sectors will beat the others. I rank the 49 Kenneth French value-weighted US industry portfolios every month from January 1980 to August 2026 with thirteen methods, from single signals (momentum, reversal, value) to ridge, lasso, random forests, gradient boosting and neural networks fed twelve industry characteristics and five market-state variables, using only data available at the time. The models do rank industries: the average rank correlation between forecast and next month’s relative return is 0.04 to 0.05, with Newey–West t-statistics of 3 to 4.6. But the simplest rule, last year’s return skipping the latest month, achieves 0.044, and no machine-learning model improves on it significantly (the largest gain in rank correlation is 0.006, t = 1.1). The skill is concentrated in momentum, collapsed after 1999 (rank correlation 0.07 in 1980–1999, 0.02–0.04 since) and is expensive to trade: a portfolio long the top ten industries and short the bottom ten earns a net Sharpe ratio of 0.16 to 0.36 after 20 basis points per unit traded, and little at 40. The skill is a long-standing anomaly, not a new machine-learning discovery.</p>
+    <p>Deciding which industries to overweight is a ranking problem: the level of the market does not matter, only which sectors will beat the others. I rank the 49 Kenneth French value-weighted US industry portfolios every month from January 1980 to August 2026 with thirteen methods, from single signals (momentum, reversal, value) to ridge, lasso, random forests, gradient boosting and neural networks fed twelve industry characteristics and five market-state variables, using only data available at the time. The models do rank industries: the average rank correlation between forecast and next month’s relative return is 0.04 to 0.05, with Newey–West t-statistics of 3 to 4.6. But the simplest rule, last year’s return skipping the latest month, achieves 0.044, and no machine-learning model improves on it significantly (the largest gain in rank correlation is 0.006, t = 1.1). The skill is concentrated in momentum, weakened after 1999 (rank correlation 0.07 in 1980–1999, 0.02–0.04 since, although a formal break test cannot rule out a stable skill) and is expensive to trade: a portfolio long the top ten industries and short the bottom ten earns a net Sharpe ratio of 0.16 to 0.36 after 20 basis points per unit traded, and little at 40. The skill is a long-standing anomaly, not a new machine-learning discovery.</p>
   </div>
 </div>
 
@@ -3458,8 +3460,8 @@ Figure 1: Random-forest importance of each input (average over the refits). Mom
 </div>
 </div>
 </section>
-<section id="the-skill-faded" class="level2" data-number="3.2">
-<h2 data-number="3.2" class="anchored" data-anchor-id="the-skill-faded"><span class="header-section-number">3.2</span> The skill faded</h2>
+<section id="the-skill-weakened" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="the-skill-weakened"><span class="header-section-number">3.2</span> The skill weakened</h2>
 <div class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show code</summary>
@@ -3689,7 +3691,7 @@ Table 3: Net return (% a year) and Sharpe ratio of the long-short portfolios fo
 </section>
 <section id="follow-up-experiments" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Follow-up experiments</h1>
-<p>The scoreboard leaves three questions open. The tests below were run on the saved forecasts after the main study was finished; their settings were fixed before each run and are stated here. They add about twenty p-values to the thirteen models above, none adjusted for multiple testing, so a p-value near 0.05 here is a lead to follow, not a finding.</p>
+<p>The scoreboard leaves five questions open. The tests below were run on the saved forecasts after the main study was finished; their settings were fixed before each run and are stated here. They add about forty p-values to the thirteen models above, none adjusted for multiple testing, so a p-value near 0.05 here is a lead to follow, not a finding.</p>
 <section id="does-managing-volatility-fix-the-costs" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="does-managing-volatility-fix-the-costs"><span class="header-section-number">4.1</span> Does managing volatility fix the costs?</h2>
 <p>Volatility-managed momentum (Barroso and Santa-Clara 2015) scales the book down after turbulent months. Here each month’s long–short book is multiplied by 10% divided by the annualised volatility of the strategy’s own returns over the last six months, capped at 2, and the 20 basis points are charged on the scaled, traded exposure. The scale for month <em>t+1</em> uses only returns earned up to the end of month <em>t</em>.</p>
@@ -4104,26 +4106,293 @@ Table 7: Net Sharpe ratio (rank correlation in brackets) by sub-period
 </div>
 </div>
 </section>
-</section>
-<section id="the-current-ranking" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> The current ranking</h1>
+<section id="is-complexity-just-volatility-timing" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="is-complexity-just-volatility-timing"><span class="header-section-number">4.4</span> Is complexity just volatility timing?</h2>
+<p>Nagel (2025) shows that the return forecasts of ridge regressions on thousands of random features, the machine-learning timing models of Kelly, Malamud and Zhou (2024), behave like volatility-timed momentum. The momentum book offers a direct test: it has returns back to 1941 and a known benchmark, volatility-managing (<a href="#tbl-vol" class="quarto-xref">Table 4</a>). Eight inputs known at the end of each month (the book’s returns over 1, 3, 6 and 12 months, its log volatility over 6 and 12 months, the market’s volatility and 12-month return) are expanded into 3,000 random Fourier features, against 468 training months at the first forecast in 1980 and 1,026 at the last. A ridge regression predicts next month’s book return, and the book is scaled by the forecast. The kernel width (0.5) and ridge penalty (1) were fixed in advance; the grid of widths and penalties is robustness only. Every model is trained on past data only, and costs are 20 basis points per unit traded.</p>
 <div class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>top <span class="op">=</span> cur.head(<span class="dv">5</span>).assign(Position<span class="op">=</span><span class="st">&quot;Highest ranked&quot;</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>bot <span class="op">=</span> cur.tail(<span class="dv">5</span>).iloc[::<span class="op">-</span><span class="dv">1</span>].assign(Position<span class="op">=</span><span class="st">&quot;Lowest ranked&quot;</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> pd.concat([top, bot])</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;12–1 momentum rank&quot;</span>] <span class="op">=</span> x[<span class="st">&quot;mom&quot;</span>].<span class="bu">map</span>(<span class="kw">lambda</span> v: <span class="ss">f&quot;</span><span class="sc">{</span>v <span class="op">+</span> <span class="fl">0.5</span><span class="sc">:.0%}</span><span class="ss">&quot;</span>)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;Score&quot;</span>] <span class="op">=</span> x[<span class="st">&quot;Score&quot;</span>].<span class="bu">map</span>(<span class="st">&quot;</span><span class="sc">{:.2f}</span><span class="st">&quot;</span>.<span class="bu">format</span>)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>Markdown(x[[<span class="st">&quot;Position&quot;</span>, <span class="st">&quot;Industry&quot;</span>, <span class="st">&quot;Score&quot;</span>, <span class="st">&quot;12–1 momentum rank&quot;</span>]].to_markdown(index<span class="op">=</span><span class="va">False</span>, disable_numparse<span class="op">=</span><span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> tim.reset_index()</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>t[<span class="st">&quot;Alpha vs vol-managed (t)&quot;</span>] <span class="op">=</span> t.<span class="bu">apply</span>(<span class="kw">lambda</span> r: <span class="st">&quot;–&quot;</span> <span class="cf">if</span> r[<span class="st">&quot;strategy&quot;</span>] <span class="op">==</span> <span class="st">&quot;Volatility-managed&quot;</span> <span class="cf">else</span> <span class="ss">f&quot;</span><span class="sc">{</span>r[<span class="st">&#39;alpha vs vol-managed (% p.a.)&#39;</span>]<span class="sc">:.1f}</span><span class="ss"> (</span><span class="sc">{</span>r[<span class="st">&#39;alpha t&#39;</span>]<span class="sc">:.1f}</span><span class="ss">)&quot;</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>table(t[[<span class="st">&quot;strategy&quot;</span>, <span class="st">&quot;net (% p.a.)&quot;</span>, <span class="st">&quot;vol (% p.a.)&quot;</span>, <span class="st">&quot;Sharpe&quot;</span>, <span class="st">&quot;max drawdown (%)&quot;</span>, <span class="st">&quot;turnover / yr&quot;</span>, <span class="st">&quot;R2_OOS (%)&quot;</span>, <span class="st">&quot;Alpha vs vol-managed (t)&quot;</span>, <span class="st">&quot;p (Sharpe &gt; vol-managed)&quot;</span>]]</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>      .rename(columns<span class="op">=</span>{<span class="st">&quot;strategy&quot;</span>: <span class="st">&quot;Strategy&quot;</span>, <span class="st">&quot;R2_OOS (%)&quot;</span>: <span class="st">&quot;R²_OS (%)&quot;</span>, <span class="st">&quot;p (Sharpe &gt; vol-managed)&quot;</span>: <span class="st">&quot;p&quot;</span>}),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      {<span class="st">&quot;net (% p.a.)&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.1f}</span><span class="st">&quot;</span>, <span class="st">&quot;vol (% p.a.)&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.1f}</span><span class="st">&quot;</span>, <span class="st">&quot;Sharpe&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.2f}</span><span class="st">&quot;</span>, <span class="st">&quot;max drawdown (%)&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.0f}</span><span class="st">&quot;</span>, <span class="st">&quot;turnover / yr&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.0f}</span><span class="st">&quot;</span>, <span class="st">&quot;R²_OS (%)&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.1f}</span><span class="st">&quot;</span>, <span class="st">&quot;p&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.2f}</span><span class="st">&quot;</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div id="tbl-ranking" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="14">
+<div id="tbl-timing" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="14">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-timing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 8: Timing the momentum book, January 1980 – July 2026, net of 20 bp per unit traded. R²_OS: out-of-sample R² of the return forecast against the average past return. p: one-sided test that the Sharpe ratio exceeds volatility-managing.
+</figcaption>
+<div aria-describedby="tbl-timing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="14">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 6%">
+<col style="width: 12%">
+<col style="width: 10%">
+<col style="width: 8%">
+<col style="width: 17%">
+<col style="width: 3%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Strategy</th>
+<th style="text-align: left;">net (% p.a.)</th>
+<th style="text-align: left;">vol (% p.a.)</th>
+<th style="text-align: left;">Sharpe</th>
+<th style="text-align: left;">max drawdown (%)</th>
+<th style="text-align: left;">turnover / yr</th>
+<th style="text-align: left;">R²_OS (%)</th>
+<th style="text-align: left;">Alpha vs vol-managed (t)</th>
+<th style="text-align: left;">p</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Buy and hold</td>
+<td style="text-align: left;">3.8</td>
+<td style="text-align: left;">16.0</td>
+<td style="text-align: left;">0.24</td>
+<td style="text-align: left;">-57</td>
+<td style="text-align: left;">11</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">-0.9 (-0.8)</td>
+<td style="text-align: left;">0.91</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Volatility-managed</td>
+<td style="text-align: left;">4.3</td>
+<td style="text-align: left;">12.9</td>
+<td style="text-align: left;">0.34</td>
+<td style="text-align: left;">-37</td>
+<td style="text-align: left;">13</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">–</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Trailing-return timing</td>
+<td style="text-align: left;">-1.1</td>
+<td style="text-align: left;">17.1</td>
+<td style="text-align: left;">-0.06</td>
+<td style="text-align: left;">-77</td>
+<td style="text-align: left;">16</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">-4.2 (-2.0)</td>
+<td style="text-align: left;">1.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Linear ridge, same features</td>
+<td style="text-align: left;">3.1</td>
+<td style="text-align: left;">15.1</td>
+<td style="text-align: left;">0.21</td>
+<td style="text-align: left;">-56</td>
+<td style="text-align: left;">11</td>
+<td style="text-align: left;">-0.2</td>
+<td style="text-align: left;">-1.3 (-1.2)</td>
+<td style="text-align: left;">0.96</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Random-feature ridge</td>
+<td style="text-align: left;">0.9</td>
+<td style="text-align: left;">25.9</td>
+<td style="text-align: left;">0.04</td>
+<td style="text-align: left;">-87</td>
+<td style="text-align: left;">27</td>
+<td style="text-align: left;">-4.5</td>
+<td style="text-align: left;">-1.2 (-0.3)</td>
+<td style="text-align: left;">0.95</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Constant mean / variance</td>
+<td style="text-align: left;">6.0</td>
+<td style="text-align: left;">17.3</td>
+<td style="text-align: left;">0.35</td>
+<td style="text-align: left;">-54</td>
+<td style="text-align: left;">16</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">1.1 (0.9)</td>
+<td style="text-align: left;">0.45</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Random-feature ridge / variance</td>
+<td style="text-align: left;">2.7</td>
+<td style="text-align: left;">17.6</td>
+<td style="text-align: left;">0.15</td>
+<td style="text-align: left;">-63</td>
+<td style="text-align: left;">25</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">-0.9 (-0.4)</td>
+<td style="text-align: left;">0.92</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>The random-feature model does not time the book. Its forecasts of next month’s return have an out-of-sample R² of -4.5%, its Sharpe ratio is 0.04 against 0.34 for volatility-managing and 0.24 for holding the book, and it trades 27 times its exposure a year. A ridge regression on the same eight inputs without the random features does no better (0.21), and scaling the book by its own trailing 12-month return loses money (-0.06). Across the 12 combinations of kernel width and penalty, the Sharpe ratio is at most 0.23, reached when the heaviest penalty turns the forecast into the average past return and the model holds the book; the lightest penalty, closest to the interpolating regime, gives between -0.12 and 0.06.</p>
+<p>The positions are not a disguised version of volatility timing either: they correlate 0.06 with the volatility-managing scale and 0.08 with the book’s trailing 12-month return, and the two together explain 1% of their variance. This does not refute Nagel’s result: it is one specification fixed in advance, on eight inputs and 47 years of one book. It says that on this book the complexity finds nothing to time.</p>
+<p>What does carry timing value is the variance. Sizing the book by a constant mean divided by its trailing six-month variance, the textbook mean–variance position with no forecast at all, gives a Sharpe ratio of 0.35, level with volatility-managing. Replacing the constant mean by the random-feature forecast lowers it to 0.15. The gain from managing volatility is a gain from the variance estimate, and the mean forecast subtracts from it.</p>
+</section>
+<section id="is-the-decline-in-skill-a-structural-break" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="is-the-decline-in-skill-a-structural-break"><span class="header-section-number">4.5</span> Is the decline in skill a structural break?</h2>
+<p>The sub-periods in <a href="#tbl-periods" class="quarto-xref">Table 2</a> were chosen after seeing the data, so a test of the decline has to allow for the search over dates. Andrews’ (1993) sup-Wald test looks for one break in the mean of a series at an unknown date in the middle 70% of the sample: it computes the Wald statistic for a change in the mean at every candidate month, using Newey–West errors, and takes the largest. Its null distribution is simulated (5% critical value 8.77). It is applied to the monthly rank correlation of each signal and to the net return of its long–short portfolio. Because the best break date is selected from about 400 candidates, the estimated size of the break is overstated; the last column gives the share of 300 simulated samples in which the 5% test rejects when the break is as estimated, with the noise resampled in blocks from the residuals.</p>
+<div class="cell" data-execution_count="16">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>b_ <span class="op">=</span> brk.copy()</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fmt(v, name): <span class="cf">return</span> <span class="ss">f&quot;</span><span class="sc">{</span>v<span class="sc">:.1f}</span><span class="ss">&quot;</span> <span class="cf">if</span> name.startswith(<span class="st">&quot;Net&quot;</span>) <span class="cf">else</span> <span class="ss">f&quot;</span><span class="sc">{</span>v<span class="sc">:.3f}</span><span class="ss">&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>b_[<span class="st">&quot;Mean before → after&quot;</span>] <span class="op">=</span> b_.<span class="bu">apply</span>(<span class="kw">lambda</span> r: <span class="ss">f&quot;</span><span class="sc">{</span>fmt(r[<span class="st">&#39;mean before&#39;</span>], r[<span class="st">&#39;series&#39;</span>])<span class="sc">}</span><span class="ss"> → </span><span class="sc">{</span>fmt(r[<span class="st">&#39;mean after&#39;</span>], r[<span class="st">&#39;series&#39;</span>])<span class="sc">}</span><span class="ss">&quot;</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>b_[<span class="st">&quot;Best break (last month before)&quot;</span>] <span class="op">=</span> b_[<span class="st">&quot;last month before break&quot;</span>]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>b_[<span class="st">&quot;Power&quot;</span>] <span class="op">=</span> b_[<span class="st">&quot;power at this break&quot;</span>].<span class="bu">map</span>(<span class="st">&quot;</span><span class="sc">{:.0%}</span><span class="st">&quot;</span>.<span class="bu">format</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>table(b_[[<span class="st">&quot;series&quot;</span>, <span class="st">&quot;sup-Wald&quot;</span>, <span class="st">&quot;p (simulated)&quot;</span>, <span class="st">&quot;Best break (last month before)&quot;</span>, <span class="st">&quot;Mean before → after&quot;</span>, <span class="st">&quot;fixed split p (chi2, 1 df)&quot;</span>, <span class="st">&quot;Power&quot;</span>]]</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      .rename(columns<span class="op">=</span>{<span class="st">&quot;series&quot;</span>: <span class="st">&quot;Series&quot;</span>, <span class="st">&quot;p (simulated)&quot;</span>: <span class="st">&quot;p&quot;</span>, <span class="st">&quot;fixed split p (chi2, 1 df)&quot;</span>: <span class="st">&quot;Fixed split, p&quot;</span>}),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>      {<span class="st">&quot;sup-Wald&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.1f}</span><span class="st">&quot;</span>, <span class="st">&quot;p&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.2f}</span><span class="st">&quot;</span>, <span class="st">&quot;Fixed split, p&quot;</span>: <span class="st">&quot;</span><span class="sc">{:.2f}</span><span class="st">&quot;</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div id="tbl-breaks" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="16">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-breaks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 9: Sup-Wald tests for a break in the mean, 559 months. Means in rank-correlation units, or in % a year for net returns. Fixed split: Wald test at December 1999, whose date was chosen after looking at the data.
+</figcaption>
+<div aria-describedby="tbl-breaks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="16">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 9%">
+<col style="width: 4%">
+<col style="width: 25%">
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Series</th>
+<th style="text-align: left;">sup-Wald</th>
+<th style="text-align: left;">p</th>
+<th style="text-align: left;">Best break (last month before)</th>
+<th style="text-align: left;">Mean before → after</th>
+<th style="text-align: left;">Fixed split, p</th>
+<th style="text-align: left;">Power</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">IC: Momentum</td>
+<td style="text-align: left;">3.6</td>
+<td style="text-align: left;">0.45</td>
+<td style="text-align: left;">2002-08</td>
+<td style="text-align: left;">0.067 → 0.022</td>
+<td style="text-align: left;">0.10</td>
+<td style="text-align: left;">37%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IC: Lasso</td>
+<td style="text-align: left;">4.8</td>
+<td style="text-align: left;">0.28</td>
+<td style="text-align: left;">2002-05</td>
+<td style="text-align: left;">0.074 → 0.025</td>
+<td style="text-align: left;">0.04</td>
+<td style="text-align: left;">45%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IC: Random forest</td>
+<td style="text-align: left;">5.0</td>
+<td style="text-align: left;">0.26</td>
+<td style="text-align: left;">2002-08</td>
+<td style="text-align: left;">0.074 → 0.027</td>
+<td style="text-align: left;">0.05</td>
+<td style="text-align: left;">49%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IC: Average of ML models</td>
+<td style="text-align: left;">5.4</td>
+<td style="text-align: left;">0.22</td>
+<td style="text-align: left;">2002-10</td>
+<td style="text-align: left;">0.075 → 0.025</td>
+<td style="text-align: left;">0.04</td>
+<td style="text-align: left;">49%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IC: Cross-industry lead–lag</td>
+<td style="text-align: left;">10.9</td>
+<td style="text-align: left;">0.02</td>
+<td style="text-align: left;">1992-10</td>
+<td style="text-align: left;">0.071 → 0.017</td>
+<td style="text-align: left;">0.01</td>
+<td style="text-align: left;">77%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IC: Lasso minus momentum</td>
+<td style="text-align: left;">6.1</td>
+<td style="text-align: left;">0.16</td>
+<td style="text-align: left;">2011-06</td>
+<td style="text-align: left;">0.013 → -0.013</td>
+<td style="text-align: left;">0.39</td>
+<td style="text-align: left;">48%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Net return: Momentum</td>
+<td style="text-align: left;">2.7</td>
+<td style="text-align: left;">0.63</td>
+<td style="text-align: left;">2002-08</td>
+<td style="text-align: left;">7.8 → 0.1</td>
+<td style="text-align: left;">0.23</td>
+<td style="text-align: left;">30%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Net return: Lasso</td>
+<td style="text-align: left;">3.6</td>
+<td style="text-align: left;">0.46</td>
+<td style="text-align: left;">2002-10</td>
+<td style="text-align: left;">9.2 → 1.3</td>
+<td style="text-align: left;">0.15</td>
+<td style="text-align: left;">37%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Net return: Random forest</td>
+<td style="text-align: left;">3.3</td>
+<td style="text-align: left;">0.52</td>
+<td style="text-align: left;">2002-08</td>
+<td style="text-align: left;">8.6 → 1.0</td>
+<td style="text-align: left;">0.34</td>
+<td style="text-align: left;">33%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>For momentum and the machine-learning signals the best break falls in 2002 and the mean rank correlation drops from about 0.07 to about 0.02–0.03, but the test does not reject a constant mean (p between 0.22 and 0.45; the largest statistic, 5.4, is below the critical value). Fixing the split at December 1999, as the sub-period table does, would give p-values of 0.04–0.10, and the difference between the two columns is the price of choosing the date after looking. The test is also weak: if the break were as large as estimated it would be detected in only 37%–49% of samples, so “no significant break” does not mean no break. The cross-industry lead–lag signal is the exception (break after 1992-10, p = 0.02, power 77%), but it is one of nine series tested and its p-value is 0.18 after a Bonferroni adjustment. The decline in skill is visible in every series and its timing is not pinned down; the data cannot separate a lasting loss of skill from a long weak stretch of a stable one.</p>
+</section>
+</section>
+<section id="the-current-ranking" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> The current ranking</h1>
+<div class="cell" data-execution_count="18">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>top <span class="op">=</span> cur.head(<span class="dv">5</span>).assign(Position<span class="op">=</span><span class="st">&quot;Highest ranked&quot;</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>bot <span class="op">=</span> cur.tail(<span class="dv">5</span>).iloc[::<span class="op">-</span><span class="dv">1</span>].assign(Position<span class="op">=</span><span class="st">&quot;Lowest ranked&quot;</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> pd.concat([top, bot])</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;12–1 momentum rank&quot;</span>] <span class="op">=</span> x[<span class="st">&quot;mom&quot;</span>].<span class="bu">map</span>(<span class="kw">lambda</span> v: <span class="ss">f&quot;</span><span class="sc">{</span>v <span class="op">+</span> <span class="fl">0.5</span><span class="sc">:.0%}</span><span class="ss">&quot;</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>x[<span class="st">&quot;Score&quot;</span>] <span class="op">=</span> x[<span class="st">&quot;Score&quot;</span>].<span class="bu">map</span>(<span class="st">&quot;</span><span class="sc">{:.2f}</span><span class="st">&quot;</span>.<span class="bu">format</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>Markdown(x[[<span class="st">&quot;Position&quot;</span>, <span class="st">&quot;Industry&quot;</span>, <span class="st">&quot;Score&quot;</span>, <span class="st">&quot;12–1 momentum rank&quot;</span>]].to_markdown(index<span class="op">=</span><span class="va">False</span>, disable_numparse<span class="op">=</span><span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div id="tbl-ranking" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="18">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ranking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 8: The five highest- and five lowest-ranked industries at the end of August 2026 by the average of the machine-learning models. Higher score: expected to beat the other industries next month. A model output with the track record above, not a recommendation.
+Table 10: The five highest- and five lowest-ranked industries at the end of August 2026 by the average of the machine-learning models. Higher score: expected to beat the other industries next month. A model output with the track record above, not a recommendation.
 </figcaption>
 <div aria-describedby="tbl-ranking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="14">
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="18">
 <table class="do-not-create-environment cell caption-top table table-sm table-striped small">
 <colgroup>
 <col style="width: 20%">
@@ -4213,28 +4482,33 @@ Table 8: The five highest- and five lowest-ranked industries at the end of Augu
 <h1 data-number="6"><span class="header-section-number">6</span> Conclusion</h1>
 <p>Machine learning finds the industry momentum that finance already knew about. Thirteen methods, five market states and twelve characteristics rank industries with an average rank correlation of about 0.05, a small and statistically solid number, but a one-line momentum rule gets 0.044 of it and no model improves on that significantly. The skill was concentrated in the 1980s and 1990s, and after 20 basis points of trading costs the best long-short portfolio earns a Sharpe ratio of 0.36.</p>
 <p>For an investor the use is a modest tilt, held for years rather than traded monthly, that gives up little when implemented through momentum itself. The more general lesson is the one that recurs across these studies: in noisy financial data, flexible models mostly add variance, and the benchmark worth beating is the simple rule that practitioners already use.</p>
-<p>The follow-up experiments sharpen this. Volatility-managing lifts momentum to the lasso’s Sharpe ratio, the learned books earn their edge over a plain momentum book mostly in momentum’s worst months, and the information in other industries’ lagged returns improves momentum only marginally and cannot be traded alone.</p>
+<p>The follow-up experiments sharpen this. Volatility-managing lifts momentum to the lasso’s Sharpe ratio, the learned books earn their edge over a plain momentum book mostly in momentum’s worst months, and the information in other industries’ lagged returns improves momentum only marginally and cannot be traded alone. A random-feature timing model fails to beat simple volatility scaling, whose value lies in the variance estimate, and a break test cannot confirm that the decline in skill is permanent.</p>
 <p><strong>Limitations.</strong> The portfolios are value-weighted industries as defined by Kenneth French, not tradable funds, and returns are before taxes and shorting costs. The alphas control for the market, size and value but not for a market-wide momentum factor, which is why the momentum portfolio shows a positive alpha. Book-to-market is annual. Kenneth French reconstitutes the industry portfolios each June. Results rest on one market.</p>
 </section>
 <section id="references" class="level1 unnumbered">
 <h1 class="unnumbered">References</h1>
+<p>Andrews, D. (1993). Tests for parameter instability and structural change with unknown change point. <em>Econometrica</em> 61(4).</p>
 <p>Barroso, P. and Santa-Clara, P. (2015). Momentum has its moments. <em>Journal of Financial Economics</em> 116(1).</p>
 <p>Daniel, K. and Moskowitz, T. (2016). Momentum crashes. <em>Journal of Financial Economics</em> 122(2).</p>
 <p>Gu, S., Kelly, B. and Xiu, D. (2020). Empirical asset pricing via machine learning. <em>Review of Financial Studies</em> 33(5).</p>
 <p>Jegadeesh, N. and Titman, S. (1993). Returns to buying winners and selling losers: implications for stock market efficiency. <em>Journal of Finance</em> 48(1).</p>
+<p>Kelly, B., Malamud, S. and Zhou, K. (2024). The virtue of complexity in return prediction. <em>Journal of Finance</em> 79(1).</p>
 <p>McLean, R. D. and Pontiff, J. (2016). Does academic research destroy stock return predictability? <em>Journal of Finance</em> 71(1).</p>
 <p>Memmel, C. (2003). Performance hypothesis testing with the Sharpe ratio. <em>Finance Letters</em> 1.</p>
 <p>Moskowitz, T. and Grinblatt, M. (1999). Do industries explain momentum? <em>Journal of Finance</em> 54(4).</p>
+<p>Nagel, S. (2025). Seemingly virtuous complexity in return prediction. Working paper.</p>
 <p>Rapach, D., Strauss, J., Tu, J. and Zhou, G. (2019). Industry return predictability: a machine learning approach. <em>Journal of Financial Data Science</em> 1(3).</p>
 </section>
 <section id="appendix-reproducing-the-results" class="level1 unnumbered">
 <h1 class="unnumbered">Appendix: reproducing the results</h1>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_ind.py        <span class="co"># all methods, about 7 minutes on a 2-core laptop</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze_ind.py    <span class="co"># scoreboards, sub-periods, costs, current ranking</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_crossind.py   <span class="co"># cross-industry lead-lag forecasts, a few minutes</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze_extensions.py   <span class="co"># follow-up experiments</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> render report.qmd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_ind.py        <span class="co"># all methods, about 7 minutes on a 2-core laptop</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze_ind.py    <span class="co"># scoreboards, sub-periods, costs, current ranking</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run_crossind.py   <span class="co"># cross-industry lead-lag forecasts, a few minutes</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze_extensions.py   <span class="co"># follow-up experiments</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze_timing.py       <span class="co"># random-feature timing of the momentum book, about 2 minutes</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze_breaks.py       <span class="co"># sup-Wald break tests</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> render report.qmd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 
 </main>
