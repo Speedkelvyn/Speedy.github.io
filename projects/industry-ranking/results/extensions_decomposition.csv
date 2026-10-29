@@ -1,5 +1,0 @@
-model,slope on momentum,"alpha vs momentum (% p.a., gross)",alpha t,alpha without the 10 worst months (% p.a.),alpha t without,net edge over momentum (% p.a.),edge t,momentum's 10 worst months (%),"this model, same months (%)",share of edge earned in those 10 months,edge in bear market (% p.a.),edge otherwise (% p.a.),"bear minus other, p (two-sided)",bear months
-lasso,0.7461,3.3631,2.576,2.1344,2.0279,1.3293,1.0223,-14.655,-8.091,1.06,3.8838,1.0049,0.6904,63
-rf,0.7983,2.9834,2.779,2.6195,2.3944,0.8574,0.7448,-14.655,-10.7326,0.971,3.0606,0.5776,0.5764,63
-mean_ml,0.7185,2.9536,2.2338,1.6232,1.4615,0.3077,0.2288,-14.655,-7.3862,5.0375,0.0752,0.3372,0.9707,63
-mom_plus_x,0.7485,3.8792,4.079,3.207,3.7839,0.9544,0.9072,-14.655,-9.534,1.1212,2.5032,0.7577,0.739,63
