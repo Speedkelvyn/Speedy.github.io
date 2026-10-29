@@ -10,27 +10,12 @@ Equity valuation, credit risk and quantitative finance work by Kelvin Afful (MS 
 
 | Company | Call (base case) | Open |
 |---|---|---|
-| **Dell Technologies (DELL)** | Overvalued: fair value $311.65 vs $473.39 | [Interactive model](https://speedkelvyn.github.io/Speedy.github.io/valuations/dell/) · [Excel](valuations/dell/DELL_valuation.xlsx) · [Inputs](valuations/dell/dell_inputs.json) |
-| **Sandisk (SNDK)** | Fairly valued, low confidence: $1,315.59 vs $1,365.38 | [Interactive model](https://speedkelvyn.github.io/Speedy.github.io/valuations/sndk/) · [Excel](valuations/sndk/SNDK_valuation.xlsx) · [Notebook](valuations/sndk/SNDK_valuation.ipynb) |
+| **Dell Technologies (DELL)** | Overvalued: fair value $311.65 vs $473.39 | [Interactive model](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/) · [Excel](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/DELL_valuation.xlsx) · [Inputs](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/dell_inputs.json) |
+| **Sandisk (SNDK)** | Fairly valued, low confidence: $1,315.59 vs $1,365.38 | [Interactive model](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/sndk/) · [Excel](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/sndk/SNDK_valuation.xlsx) · [Notebook](https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine/blob/main/sndk/SNDK_valuation.ipynb) |
 
 Each interactive model is a self-contained page built on a single valuation engine (FCFF DCF, Monte Carlo, comparables, peer regression and earnings-quality screens). Switch Bear, Base and Bull cases, edit any input, and audit where every number came from.
 
-## Python engine
-
-The interactive pages and the Python engine in [`valuations/engine`](valuations/engine) give the same DCF, WACC and comparables results (checked by the tests to 1e-9):
-
-```bash
-cd valuations/engine
-pip install -r requirements.txt
-python run_valuation.py dell                    # full valuation report for Dell
-python run_valuation.py sndk --scenario Bull    # Sandisk, Bull case
-python run_valuation.py dell --excel dell.xlsx  # also write the live-formula Excel workbook
-python value_ticker.py AAPL                     # any ticker, one command: fetch, value, write page + workbook to valuations/aapl/
-python value_ticker.py --snapshot AAPL_yahoo_2026-10-21.json   # rerun on saved data, no network
-python fetch_yahoo.py AAPL                      # only build the inputs file from Yahoo Finance
-python -m pytest tests
-python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild a page after editing inputs
-```
+The engine, the Python and Excel versions of it, and an app that values any listed stock from a watchlist or a portfolio are in [Dell-and-Sandisk-plus-valuation-engine](https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine).
 
 ## Research
 
@@ -50,11 +35,7 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 
 ```
 ├── index.html               Portfolio homepage
-├── valuations/
-│   ├── dell/                DELL model, Excel workbook, inputs, football field
-│   ├── sndk/                SNDK model, Excel workbook, notebook, inputs
-│   └── engine/              Python engine, CLI, value_ticker.py (any ticker), Excel builder, data fetch, tests
-│       └── web/             Browser engine (model.js), page template and build_page.py
+├── valuations/              Redirects to the valuation engine (repo: Dell-and-Sandisk-plus-valuation-engine)
 ├── projects/
 │   ├── credit-spreads/      Redirect to the credit-spread study (repo: Credit-spread-forecasting-)
 │   ├── volatility/          Redirect to the volatility study (repo: Volatility-forecasting-Study)
@@ -68,6 +49,7 @@ python web/build_page.py ../dell/dell_inputs.json ../dell/index.html   # rebuild
 ```
 
 ## Other repositories
+- [Dell-and-Sandisk-plus-valuation-engine](https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine): Valuation engine and app, with the Dell and Sandisk models
 - [Valuation-gem](https://github.com/Speedkelvyn/Valuation-gem): The Valuation Ledger, an interactive course in valuing companies
 - [Exchange-Rate](https://github.com/Speedkelvyn/Exchange-Rate): Can machine learning beat the random walk in exchange rates?
 - [Credit-spread-forecasting-](https://github.com/Speedkelvyn/Credit-spread-forecasting-): Thirteen machine-learning models for US credit spreads, 1995–2026
@@ -84,10 +66,8 @@ Valuations are for illustration only, not investment advice.
 ## Development
 
 ```bash
-pip install ruff pytest
-ruff check . && ruff format --check .   # lint and formatting
-pytest -q                               # tests
 npx html-validate@8.24.1 $(git ls-files '*.html')   # HTML validation
+npx prettier@3.3.3 --check $(git ls-files '*.html' '*.js')   # formatting
 ```
 
-Style is set by `ruff.toml`, `.prettierrc.json`, `.htmlvalidate.json` and `.editorconfig`; GitHub Actions runs the same checks on every push.
+Style is set by `.prettierrc.json`, `.htmlvalidate.json` and `.editorconfig`; GitHub Actions runs the same checks on every push. The Python work lives in the repositories linked above.
