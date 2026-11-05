@@ -10,8 +10,8 @@ Equity valuation, credit risk and quantitative finance work by Kelvin Afful (MS 
 
 | Company | Call (base case) | Open |
 |---|---|---|
-| **Dell Technologies (DELL)** | Overvalued: fair value $311.65 vs $473.39 | [Interactive model](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/) · [Excel](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/DELL_valuation.xlsx) · [Inputs](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/dell_inputs.json) |
-| **Sandisk (SNDK)** | Fairly valued, low confidence: $1,315.59 vs $1,365.38 | [Interactive model](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/sndk/) · [Excel](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/sndk/SNDK_valuation.xlsx) · [Notebook](https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine/blob/main/sndk/SNDK_valuation.ipynb) |
+| **Dell Technologies (DELL)** | Overvalued: fair value $278.10 vs $326.48 (5 Nov 2026) | [Interactive model](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/) · [Excel](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/DELL_valuation.xlsx) · [Inputs](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/dell/dell_inputs.json) |
+| **Sandisk (SNDK)** | Undervalued, low confidence: $1,478.94 vs $842.61 (5 Nov 2026, before the 8-for-1 split) | [Interactive model](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/sndk/) · [Excel](https://speedkelvyn.github.io/Dell-and-Sandisk-plus-valuation-engine/sndk/SNDK_valuation.xlsx) · [Notebook](https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine/blob/main/sndk/SNDK_valuation.ipynb) |
 
 Each interactive model is a self-contained page built on a single valuation engine (FCFF DCF, Monte Carlo, comparables, peer regression and earnings-quality screens). Switch Bear, Base and Bull cases, edit any input, and audit where every number came from.
 
