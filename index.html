@@ -923,7 +923,8 @@
             <p>
               Base-case results from a single valuation engine that runs identically in Excel, Python and the
               browser. Each interactive model lets you switch Bear, Base and Bull cases and edit any input;
-              the same engine powers an app that values any listed stock from a watchlist or a portfolio.
+              the same engine powers an app that values any listed stock from a watchlist or a portfolio, with
+              the live macro backdrop and market sentiment alongside.
             </p>
           </div>
           <div class="cases">
@@ -1129,7 +1130,8 @@
             <h2>A six-step valuation framework</h2>
             <p>
               Missing debt, cash or yield data stops the model instead of defaulting to zero, so every
-              published number traces back to a source.
+              published number traces back to a source. Live macro data weights the cases; sentiment is shown
+              beside the value, never blended into it.
             </p>
           </div>
           <ol class="method">
@@ -1142,7 +1144,11 @@
             </li>
             <li>
               <h3>Future cash flows</h3>
-              <p>FCFF for operating companies, excess returns for banks and insurers, dividends for REITs.</p>
+              <p>
+                FCFF for operating companies, excess returns for banks and insurers, dividends for REITs.
+                Capex fades from today's level to its through-cycle share; companies still building capacity
+                reinvest in line with growth.
+              </p>
             </li>
             <li>
               <h3>Discount rate</h3>
@@ -1158,7 +1164,11 @@
             </li>
             <li>
               <h3>Verdict</h3>
-              <p>DCF, Monte Carlo, comparables and regression blended into a call and expected alpha.</p>
+              <p>
+                DCF, Monte Carlo, comparables and regression blended into a call and expected alpha. A method
+                that values the stock at or below zero is left out, and a recession probability from the yield
+                curve, jobs and credit data weights Bear, Base and Bull.
+              </p>
             </li>
           </ol>
         </div>
@@ -1241,6 +1251,17 @@
             <h2>Other projects</h2>
           </div>
           <div class="projects">
+            <a class="project" href="https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine">
+              <span class="kind">Tool · Python · Valuation</span>
+              <h3>Stock valuation app</h3>
+              <p>
+                Values any listed stock, a watchlist or a whole portfolio with DCF, Monte Carlo and
+                comparables, every input traced to a source. A live macro tab (yield curve, credit spreads,
+                VIX, jobs) weights the cases, and estimate revisions, trend and news tone show the market's
+                mood beside the value.
+              </p>
+              <span class="more">View project →</span>
+            </a>
             <a class="project" href="https://speedkelvyn.github.io/Valuation-gem/">
               <span class="kind">Course</span>
               <h3>The Valuation Ledger</h3>

@@ -15,7 +15,7 @@ Equity valuation, credit risk and quantitative finance work by Kelvin Afful (MS 
 
 Each interactive model is a self-contained page built on a single valuation engine (FCFF DCF, Monte Carlo, comparables, peer regression and earnings-quality screens). Switch Bear, Base and Bull cases, edit any input, and audit where every number came from.
 
-The engine, the Python and Excel versions of it, and an app that values any listed stock from a watchlist or a portfolio are in [Dell-and-Sandisk-plus-valuation-engine](https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine).
+The engine, the Python and Excel versions of it, and an app that values any listed stock from a watchlist or a portfolio, with a live macro backdrop (recession probability, credit spreads, VIX) and market sentiment beside each value, are in [Dell-and-Sandisk-plus-valuation-engine](https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine).
 
 ## Research
 
