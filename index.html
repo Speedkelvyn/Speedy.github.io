@@ -1263,9 +1263,59 @@
         <div class="container">
           <div class="section-head">
             <p class="overline">Projects</p>
-            <h2>Other projects</h2>
+            <h2>Credit risk first, then research and tools</h2>
           </div>
           <div class="projects">
+            <a class="project" href="https://github.com/Speedkelvyn/SBA-default-model">
+              <span class="kind">Model · Python · Credit</span>
+              <h3>SBA small-business default model</h3>
+              <p>
+                Five-year default model on 1.46 million SBA 7(a) loans, validated on loans approved after training. Boosted trees reach an AUC of 0.65 against 0.61 for a bank-style scorecard; loan size alone scores 0.64. A loan-term field the SBA overwrites at charge-off, which had lifted a first version to 0.93, was found and removed.
+              </p>
+              <span class="more">Read the model document →</span>
+            </a>
+            <a class="project" href="https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine/blob/main/backtest/CREDIT_FINDINGS.md">
+              <span class="kind">Model · Python · Credit</span>
+              <h3>Credit risk rating and bankruptcy backtest</h3>
+              <p>
+                A 1-to-9 rating from annual statements and the stock price, nothing fitted to defaults, tested on 71,853 company-years. A year ahead it scores an AUC of 0.90 against 0.81 for the Altman Z-score; on stocks above $3 it catches 59% of failures while flagging 9% of companies against 25% for Z.
+              </p>
+              <span class="more">Read the findings →</span>
+            </a>
+            <a class="project" href="https://github.com/Speedkelvyn/Credit-memos">
+              <span class="kind">Credit memos</span>
+              <h3>Three credit memos with their models</h3>
+              <p>
+                A Houston apartment refinance cut from $18.5M to $13.45M, an LL Flooring review written from its FY2022 10-K 16 months before the bankruptcy and scored against what happened, and a Vistra review ahead of its Cogentrix acquisition. Each has a number check.
+              </p>
+              <span class="more">Read the memos →</span>
+            </a>
+            <a class="project" href="https://speedkelvyn.github.io/Credit-spread-forecasting-/">
+              <span class="kind">Research · Machine learning · Credit</span>
+              <h3>Forecasting US credit spreads</h3>
+              <p>
+                Thirteen models and 145 real-time predictors, 1995–2026. Exposes a 27% R² as an averaging
+                artifact, and finds a momentum rule that lifts the Sharpe ratio of credit from 0.39 to 0.66.
+              </p>
+              <span class="more">Read the study →</span>
+            </a>
+            <a class="project" href="https://speedkelvyn.github.io/Recession-Risk-Study/">
+              <span class="kind">Research · Machine learning · Macro</span>
+              <h3>Predicting recessions and market stress</h3>
+              <p>
+                Nine probability models, 1993–2025. The yield curve alone scores an AUC of 0.85 and nothing
+                beats it; the 2022–24 inversion produced a 90% signal for 21 months and no recession.
+              </p>
+              <span class="more">Read the study →</span>
+            </a>
+            <div class="project">
+              <span class="kind">Research</span>
+              <h3>Financial contagion</h3>
+              <p>
+                Investigated systemic risk transmission from bank failures to neighbouring institutions,
+                applying financial data modelling across a multi-institution dataset.
+              </p>
+            </div>
             <a class="project" href="https://github.com/Speedkelvyn/Dell-and-Sandisk-plus-valuation-engine">
               <span class="kind">Tool · Python · Valuation</span>
               <h3>Stock valuation app</h3>
@@ -1286,23 +1336,6 @@
               </p>
               <span class="more">Read the course →</span>
             </a>
-            <div class="project">
-              <span class="kind">Research</span>
-              <h3>Financial contagion</h3>
-              <p>
-                Investigated systemic risk transmission from bank failures to neighbouring institutions,
-                applying financial data modelling across a multi-institution dataset.
-              </p>
-            </div>
-            <a class="project" href="https://speedkelvyn.github.io/Credit-spread-forecasting-/">
-              <span class="kind">Research · Machine learning · Credit</span>
-              <h3>Forecasting US credit spreads</h3>
-              <p>
-                Thirteen models and 145 real-time predictors, 1995–2026. Exposes a 27% R² as an averaging
-                artifact, and finds a momentum rule that lifts the Sharpe ratio of credit from 0.39 to 0.66.
-              </p>
-              <span class="more">Read the study →</span>
-            </a>
             <a class="project" href="https://speedkelvyn.github.io/Volatility-forecasting-Study/">
               <span class="kind">Research · Machine learning · Volatility</span>
               <h3>Forecasting stock-market volatility</h3>
@@ -1310,15 +1343,6 @@
                 Nineteen forecasters, 2000–2026. The month-end VIX is the best predictor, but better forecasts
                 do not make a better volatility-managed portfolio: the Sharpe ratio rises from 0.49 only to
                 about 0.55, within noise.
-              </p>
-              <span class="more">Read the study →</span>
-            </a>
-            <a class="project" href="https://speedkelvyn.github.io/Recession-Risk-Study/">
-              <span class="kind">Research · Machine learning · Macro</span>
-              <h3>Predicting recessions and market stress</h3>
-              <p>
-                Nine probability models, 1993–2025. The yield curve alone scores an AUC of 0.85 and nothing
-                beats it; the 2022–24 inversion produced a 90% signal for 21 months and no recession.
               </p>
               <span class="more">Read the study →</span>
             </a>
@@ -1333,15 +1357,6 @@
               </p>
               <span class="more">Read the study →</span>
             </a>
-            <a class="project" href="https://speedkelvyn.github.io/Browser-regression-tool/">
-              <span class="kind">Tool · JavaScript · Econometrics</span>
-              <h3>Regression tool</h3>
-              <p>
-                OLS, logit and probit on any CSV file, in the browser. Robust standard errors, odds ratios and
-                diagnostic plots, with every number checked against statsmodels.
-              </p>
-              <span class="more">Open the tool →</span>
-            </a>
             <a class="project" href="https://speedkelvyn.github.io/Exchange-Rate/">
               <span class="kind">Research · Python · PyTorch</span>
               <h3>Exchange rate forecasting</h3>
@@ -1351,6 +1366,15 @@
                 months.
               </p>
               <span class="more">Read the study →</span>
+            </a>
+            <a class="project" href="https://speedkelvyn.github.io/Browser-regression-tool/">
+              <span class="kind">Tool · JavaScript · Econometrics</span>
+              <h3>Regression tool</h3>
+              <p>
+                OLS, logit and probit on any CSV file, in the browser. Robust standard errors, odds ratios and
+                diagnostic plots, with every number checked against statsmodels.
+              </p>
+              <span class="more">Open the tool →</span>
             </a>
             <a class="project" href="https://github.com/Speedkelvyn/Inbox-Zero">
               <span class="kind">Python · Gmail API</span>
